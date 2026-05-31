@@ -2,6 +2,8 @@
 
 > Privates Wörterbuch für **Versprecher und Verhörer**.
 > Tagline (Favorit): **„Heute schon verhört?"** _(final noch zu bestätigen, siehe [TODO.md](./TODO.md))_
+>
+> _Zuletzt aktualisiert: 2026-05-31 09:59 UTC · Änderungen: [CHANGELOG.md](./CHANGELOG.md)_
 
 Diese Roadmap setzt die empfohlene Build-Reihenfolge aus der
 [Spezifikation](./SPEC.md) (Abschnitt 14) in konkrete, abhakbare Aufgaben um.
@@ -16,22 +18,25 @@ Goroutine-Worker-Pool mit Polling.
 
 ---
 
-## Phase 1 – Scaffold, Auth & Invite-Registrierung
+## Phase 1 – Scaffold, Auth & Invite-Registrierung ✅
 
 Fundament: lauffähiger Service, Migrationen, sicherer Login **nur per Einladung**.
+_Umgesetzt und end-to-end verifiziert (siehe CHANGELOG)._
 
-- [ ] Projekt-Scaffold Go/Gin (Router unter `/v1`, Config, Logging, Health-Check)
-- [ ] PostgreSQL + Migrations-Setup (`psql`-Superuser für DDL, App-User nur DML)
-- [ ] Migrationen: `users`, `invitations`
-- [ ] JWT-Auth mit Claims `uid`, `adm`; Auth-Middleware
-- [ ] `POST /auth/register` – nur mit gültigem Invite-Token; `invited_by` setzen
-- [ ] `POST /auth/login` → JWT
-- [ ] `POST /auth/verify-email` – E-Mail-Verifizierung (Pflicht, §11)
-- [ ] Passwort-Hashing (bcrypt), `users.status`-Handling (`active/suspended/banned`)
-- [ ] Rate-Limiting auf Schreib-Endpoints, TrustedProxies für echte Client-IP
-- [ ] CI: Build, Lint, Tests, Migration-Check
+- [x] Projekt-Scaffold Go/Gin (Router unter `/v1`, Config, Logging, Health-Check)
+- [x] PostgreSQL + Migrations-Setup (`psql`-Superuser für DDL, App-User nur DML)
+- [x] Migrationen: `users`, `invitations` (+ `email_verifications`)
+- [x] JWT-Auth mit Claims `uid`, `adm`; Auth-Middleware
+- [x] `POST /auth/register` – nur mit gültigem Invite-Token; `invited_by` setzen (+ Bootstrap erster Admin)
+- [x] `POST /auth/login` → JWT
+- [x] `POST /auth/verify-email` – E-Mail-Verifizierung (Pflicht, §11)
+- [x] Passwort-Hashing (bcrypt), `users.status`-Handling (`active/suspended/banned`)
+- [x] Rate-Limiting auf Schreib-Endpoints, TrustedProxies für echte Client-IP
+- [x] `GET /me` (geschützt, verifiziert die Auth-Middleware)
+- [x] Unit-Tests (Passwort, JWT, Token, Validierung, Service)
+- [ ] CI-Pipeline: Build, Lint, Tests, Migration-Check _(noch offen)_
 
-**Tabellen:** `users`, `invitations` · **Endpoints:** `/auth/*`
+**Tabellen:** `users`, `invitations`, `email_verifications` · **Endpoints:** `/auth/*`, `/me`
 
 ## Phase 2 – Gruppen, Mitglieder & Einladungen
 

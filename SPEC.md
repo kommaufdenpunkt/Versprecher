@@ -1,6 +1,8 @@
 # Insider — Spezifikation (Stand Mai 2026)
 
 > Arbeitsdokument für die Umsetzung mit Claude Code. Identifier (Tabellen, Spalten, Endpoints) in Englisch, Inhalte/Erklärungen in Deutsch. `TODO:`-Stellen sind bewusst offen.
+>
+> _Im Repo erfasst: 2026-05-31 09:59 UTC · Änderungen: [CHANGELOG.md](./CHANGELOG.md)_
 
 -----
 

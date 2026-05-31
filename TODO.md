@@ -1,5 +1,7 @@
 # Insider – Offene Punkte (TODO)
 
+> _Zuletzt aktualisiert: 2026-05-31 09:59 UTC · Änderungen: [CHANGELOG.md](./CHANGELOG.md)_
+
 Offene Entscheidungen aus der [Spezifikation](./SPEC.md) (Abschnitt 15). Bitte
 vor bzw. während der jeweiligen [Roadmap](./ROADMAP.md)-Phase klären.
 

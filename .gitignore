@@ -1,0 +1,15 @@
+# Build-Artefakte
+/bin/
+/server
+*.exe
+
+# Umgebung / Geheimnisse (niemals committen)
+.env
+.env.local
+*.pem
+*.key
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
