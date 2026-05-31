@@ -4,6 +4,18 @@ Alle Zeiten in UTC. Neueste Einträge oben.
 
 ## 2026-05-31
 
+- **~15:11** (≈ 17:11 MESZ) – **Phase 3 umgesetzt** (Posts + Feed + Fidolin):
+  Pakete `internal/posts`, `internal/fidolin`, `internal/moderation`; Migrationen
+  `0005_posts`, `0006_moderation_settings`. Endpoints `POST /v1/groups/:id/posts`,
+  `GET /v1/groups/:id/feed` (Keyset-Pagination), `PATCH /v1/posts/:id`.
+  **Fidolin** als Goroutine-Worker-Pool mit Polling, sicherem Claiming
+  (`FOR UPDATE SKIP LOCKED`) und Stale-Reclaim; Analyzer als Interface
+  (Offline-Heuristik mitgeliefert, LLM einsteckbar); Schwellen aus
+  `moderation_settings`; **fail-closed** (neue Posts erst `pending_review`,
+  KI-Fehler → Mensch). Hashtag-Regel (max. 12 Buchstaben) durchgesetzt.
+  Graceful Shutdown (HTTP + Fidolin) in `main`. Unit-Tests grün; end-to-end
+  gegen Postgres verifiziert: harmlos → `visible`, Hass → `blocked`,
+  Verhörer-Vorschlag, Autor-only `PATCH`, Mitglieds-Autorisierung.
 - **~10:25** (≈ 12:25 MESZ) – **Phase 2 umgesetzt** (Gruppen + Mitglieder +
   Einladungen): Paket `internal/groups` (Service, Repository, Handler), Migration
   `0004_groups` (`groups`, `group_members`, FK `invitations.group_id`). Endpoints
@@ -36,6 +48,5 @@ Alle Zeiten in UTC. Neueste Einträge oben.
 
 ## Nächste Schritte (geplant)
 
-- **Phase 3:** Posts (Versprecher/Verhörer) + Feed; Fidolin-Worker (Moderation +
-  „gemeint"-Vorschlag).
+- **Phase 4:** Reaktionen (😂 ❤️ 😭) + Kommentare (mit Moderation durch Fidolin).
 - Danach weiter Phase für Phase gemäß `ROADMAP.md`.

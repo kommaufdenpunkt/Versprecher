@@ -3,7 +3,7 @@
 > Privates Wörterbuch für **Versprecher und Verhörer**.
 > Tagline (Favorit): **„Heute schon verhört?"** _(final noch zu bestätigen, siehe [TODO.md](./TODO.md))_
 >
-> _Zuletzt aktualisiert: 2026-05-31 10:25 UTC (12:25 MESZ) · Änderungen: [CHANGELOG.md](./CHANGELOG.md)_
+> _Zuletzt aktualisiert: 2026-05-31 15:11 UTC (17:11 MESZ) · Änderungen: [CHANGELOG.md](./CHANGELOG.md)_
 
 Diese Roadmap setzt die empfohlene Build-Reihenfolge aus der
 [Spezifikation](./SPEC.md) (Abschnitt 14) in konkrete, abhakbare Aufgaben um.
@@ -53,22 +53,26 @@ _Umgesetzt und end-to-end verifiziert (siehe CHANGELOG)._
 
 **Tabellen:** `groups`, `group_members`, `invitations` · **Endpoints:** `/groups`, `/groups/:id`, `/groups/:id/invite`, `/invitations/:token/accept`
 
-## Phase 3 – Posts anlegen + Feed + Fidolin-Worker
+## Phase 3 – Posts anlegen + Feed + Fidolin-Worker ✅
 
-- [ ] Migration: `posts` (inkl. `word`, `word_normalized`, `kind`, `voice_url`, `ai_*`, `status`)
-- [ ] Hashtag-Validierung beim Wort: `^#?[A-Za-zÄÖÜäöüß]{1,12}$` (max. 12 Buchstaben)
-- [ ] `word_normalized` (lowercase/trim) für spätere Aggregation berechnen
-- [ ] `POST /groups/:id/posts` – Beitrag anlegen, Voice-Snippet optional (presigned)
-- [ ] `GET /groups/:id/feed` – Feed (Pagination, Sortierung)
-- [ ] `PATCH /posts/:id` – „gemeint"/`kind` durch Verfasser bestätigen/ändern
-- [ ] **Fidolin-Worker** (Goroutine-Pool, Polling) – JSON-Vertrag §7:
-  - [ ] IN `{word, explanation}` → OUT `{score, reason, kind_suggestion, meant_suggestion}`
-  - [ ] Felder füllen: `ai_score`, `ai_kind_suggestion`, `ai_meant_suggestion`
-  - [ ] Schwellen aus `moderation_settings`: `≥0.85` → `blocked`, `≥0.60` → `pending_review`, sonst `visible`
-  - [ ] Fallback bei KI-Fehler → `pending_review`
-- [ ] Wichtig: Fidolin filtert **nicht** die lustigen Versprecher raus; nur Hass/Übergriffiges
+_Umgesetzt und end-to-end verifiziert (siehe CHANGELOG)._
 
-**Tabellen:** `posts` (+ liest `moderation_settings`) · **Endpoints:** `/groups/:id/posts`, `/groups/:id/feed`, `/posts/:id`
+- [x] Migration: `posts` (inkl. `word`, `word_normalized`, `kind`, `voice_url`, `ai_*`, `status`) + `moderation_settings`
+- [x] Hashtag-Validierung beim Wort: `^#?[A-Za-zÄÖÜäöüß]{1,12}$` (max. 12 Buchstaben)
+- [x] `word_normalized` (lowercase/trim) für spätere Aggregation berechnen
+- [x] `POST /groups/:id/posts` – Beitrag anlegen (Voice-URL optional), startet `pending_review` (fail-closed)
+- [x] `GET /groups/:id/feed` – Feed (nur `visible`, Keyset-Pagination)
+- [x] `PATCH /posts/:id` – „gemeint"/`kind` durch Verfasser bestätigen/ändern
+- [x] **Fidolin-Worker** (Goroutine-Pool, Polling, `FOR UPDATE SKIP LOCKED`, Stale-Reclaim):
+  - [x] Analyzer-Interface; mitgelieferte Offline-Heuristik (LLM später einsteckbar)
+  - [x] Felder füllen: `ai_score`, `ai_kind_suggestion`, `ai_meant_suggestion`
+  - [x] Schwellen aus `moderation_settings`: `≥0.85` → `blocked`, `≥0.60` → `pending_review`, sonst `visible`
+  - [x] Fallback bei KI-Fehler → `pending_review` (fail-closed)
+- [x] Fidolin filtert **nicht** die lustigen Versprecher raus; nur Hass/Übergriffiges
+- [x] Graceful Shutdown (HTTP-Server + Fidolin)
+- [x] Unit-Tests (posts, fidolin, Heuristik, Schwellen)
+
+**Tabellen:** `posts`, `moderation_settings` · **Endpoints:** `/groups/:id/posts`, `/groups/:id/feed`, `/posts/:id`
 
 ## Phase 4 – Reaktionen & Kommentare (mit Moderation)
 

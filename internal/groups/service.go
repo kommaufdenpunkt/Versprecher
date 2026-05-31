@@ -54,6 +54,19 @@ func (s *Service) ListMyGroups(ctx context.Context, userID int64) ([]Group, erro
 	return s.repo.ListGroupsForUser(ctx, userID)
 }
 
+// IsMember prüft, ob ein Nutzer Mitglied einer Gruppe ist (für andere Pakete,
+// z. B. posts: Autorisierung beim Posten/Lesen).
+func (s *Service) IsMember(ctx context.Context, groupID, userID int64) (bool, error) {
+	_, err := s.repo.MemberRole(ctx, groupID, userID)
+	if errors.Is(err, ErrNotFound) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // GetGroup liefert Details — nur für Mitglieder.
 func (s *Service) GetGroup(ctx context.Context, userID, groupID int64) (*GroupDetails, error) {
 	role, err := s.repo.MemberRole(ctx, groupID, userID)

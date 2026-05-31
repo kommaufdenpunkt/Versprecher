@@ -25,6 +25,9 @@ internal/
   db/              PostgreSQL-Pool (pgx)
   auth/            Auth: Passwort, JWT, Tokens, Validierung, Service, Handler
   groups/          Gruppen, Mitglieder, Einladungen (Service, Handler)
+  posts/           Beiträge + Feed (Service, Handler)
+  fidolin/         KI-Worker: Analyzer (Interface + Heuristik), Worker-Pool, Store
+  moderation/      Moderations-Schwellen (von Fidolin gelesen)
   middleware/      Auth, Rate-Limit, Security-Header
   httpx/           Router (/v1)
 migrations/        SQL-Migrationen (.up.sql / .down.sql)
@@ -79,13 +82,31 @@ make test     # Unit-Tests (ohne DB, laufen überall)
 | GET | `/v1/groups/:id` | Gruppen-Details (Rolle, Mitgliederzahl) |
 | POST | `/v1/groups/:id/invite` | Einladung erzeugen |
 | POST | `/v1/invitations/:token/accept` | Einladung annehmen |
+| POST | `/v1/groups/:id/posts` | Beitrag anlegen (wird von Fidolin geprüft) |
+| GET | `/v1/groups/:id/feed` | Feed (nur sichtbare Beiträge) |
+| PATCH | `/v1/posts/:id` | „gemeint"/Sorte bestätigen (nur Autor) |
 | GET | `/healthz` | Health-Check |
+
+## Fidolin (KI-Moderation)
+
+Fidolin läuft als Hintergrund-Worker (Goroutine-Pool mit Polling) und prüft neue
+Beiträge. Sicherheit zuerst:
+
+- Neue Beiträge sind **`pending_review`** (nicht im Feed), bis Fidolin sie prüft.
+- Score `≥ 0.85` → `blocked`, `≥ 0.60` → `pending_review` (Mensch), sonst `visible`
+  (Schwellen in `moderation_settings`).
+- **Fail-closed:** Bei KI-Fehler bleibt der Beitrag beim Menschen (`pending_review`).
+- Der `Analyzer` ist ein **Interface**: mitgeliefert ist eine offline-funktionierende
+  Heuristik; ein LLM-Analyzer kann ohne Worker-Änderung eingesteckt werden.
+- Mehrere Worker/Instanzen sicher dank `FOR UPDATE SKIP LOCKED`; hängengebliebene
+  Jobs werden automatisch zurückgestellt (Stale-Reclaim).
 
 ## Stand der Umsetzung
 
 - ✅ **Phase 1:** Scaffold, Auth, Invite-Registrierung.
 - ✅ **Phase 2:** Gruppen, Mitglieder, Einladungen.
-- ⏳ Phasen 3–8: siehe [ROADMAP.md](./ROADMAP.md).
+- ✅ **Phase 3:** Posts + Feed + Fidolin-Worker (Moderation + „gemeint"-Vorschlag).
+- ⏳ Phasen 4–8: siehe [ROADMAP.md](./ROADMAP.md).
 
 ### Hinweise zu Phase 1
 

@@ -22,6 +22,9 @@ Stell es dir wie ein kleines Büro vor:
 | `internal/db` | Die **Leitung zur Datenbank** (wo alles gespeichert wird). |
 | `internal/auth` | Das **Türschloss**: Anmelden, Registrieren, Passwörter. |
 | `internal/groups` | Die **Gruppen-Verwaltung**: Kreise gründen, einladen, beitreten. |
+| `internal/posts` | Die **Beiträge**: Versprecher festhalten, Feed anzeigen. |
+| `internal/fidolin` | Der **stille Helfer**: prüft jeden Beitrag, bevor er sichtbar wird. |
+| `internal/moderation` | Die **Regler**: ab wann wird etwas blockiert oder geprüft. |
 | `internal/middleware` | Der **Türsteher**: prüft Ausweise, bremst zu viele Anfragen. |
 | `internal/httpx` | Der **Wegweiser**: welche Anfrage geht zu welchem Baustein. |
 | `migrations` | Die **Baupläne** für die Datenbank-Tabellen. |
@@ -49,6 +52,19 @@ mit **Gruppen** klemmt, in `groups`. Mehr muss man sich nicht merken.
 - Eine Gruppe hat eine **Höchstzahl an Mitgliedern** (aktuell 30), damit sie
   klein und persönlich bleibt.
 
+### Beiträge & der Helfer „Fidolin" (Phase 3)
+- Man hält einen **Versprecher** oder **Verhörer** fest (ein Wort + kurze Erklärung).
+- Ein Wort darf höchstens **12 Buchstaben** haben (es ist das „Hashtag").
+- Bevor ein Beitrag im **Feed** auftaucht, schaut **Fidolin** kurz drüber:
+  - Die **lustigen** Versprecher bleiben natürlich drin – Fidolin sucht nur nach
+    **Hass oder Übergriffigem**.
+  - Ist etwas eindeutig schlimm → wird **blockiert**. Ist es grenzwertig → ein
+    **Mensch** schaut nach. Sonst → **sichtbar**.
+  - **Sicherheitsprinzip:** Geht bei Fidolin etwas schief, wird der Beitrag NICHT
+    einfach durchgewinkt, sondern einem Menschen vorgelegt.
+- Fidolin schlägt auch vor, **was wohl gemeint war** und ob es ein Versprecher oder
+  Verhörer ist – aber das ist nur ein Vorschlag, der **Verfasser** entscheidet.
+
 ## Wie eine Einladung abläuft (Beispiel)
 
 1. **Anna** gründet die Gruppe „Familie".
@@ -59,8 +75,8 @@ mit **Gruppen** klemmt, in `groups`. Mehr muss man sich nicht merken.
 ## Was kommt als Nächstes?
 
 Die geplanten Schritte stehen in [ROADMAP.md](./ROADMAP.md). Als Nächstes:
-Beiträge schreiben (die Versprecher selbst), der Helfer „Fidolin", Reaktionen
-und Kommentare.
+**Reaktionen** (😂 ❤️ 😭) und **Kommentare** zu den Beiträgen – ebenfalls von
+Fidolin moderiert.
 
 ## Wenn du selbst mal reinschauen willst
 

@@ -28,6 +28,15 @@ type Config struct {
 
 	// Schreib-Endpoints: einfaches Rate-Limit pro IP.
 	RateLimitPerMinute int
+
+	// Fidolin-Worker (Moderation).
+	FidolinWorkers      int
+	FidolinBatchSize    int
+	FidolinPollInterval time.Duration
+	FidolinStaleAfter   time.Duration
+
+	// Optionale Blockliste für die Heuristik (sonst Default). Komma-getrennt.
+	ModerationBlocklist []string
 }
 
 // Load liest die Konfiguration. JWTSecret ist Pflicht (kein unsicherer Default).
@@ -41,6 +50,11 @@ func Load() (*Config, error) {
 		RequireEmailVerification: getBool("REQUIRE_EMAIL_VERIFICATION", true),
 		EmailVerificationTTL:     getDuration("EMAIL_VERIFICATION_TTL", 48*time.Hour),
 		RateLimitPerMinute:       getInt("RATE_LIMIT_PER_MINUTE", 20),
+		FidolinWorkers:           getInt("FIDOLIN_WORKERS", 2),
+		FidolinBatchSize:         getInt("FIDOLIN_BATCH_SIZE", 10),
+		FidolinPollInterval:      getDuration("FIDOLIN_POLL_INTERVAL", 2*time.Second),
+		FidolinStaleAfter:        getDuration("FIDOLIN_STALE_AFTER", 5*time.Minute),
+		ModerationBlocklist:      getList("MODERATION_BLOCKLIST"),
 	}
 
 	if len(cfg.JWTSecret) < 16 {

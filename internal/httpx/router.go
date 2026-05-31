@@ -10,10 +10,11 @@ import (
 	"github.com/kommaufdenpunkt/insider/internal/config"
 	"github.com/kommaufdenpunkt/insider/internal/groups"
 	"github.com/kommaufdenpunkt/insider/internal/middleware"
+	"github.com/kommaufdenpunkt/insider/internal/posts"
 )
 
 // NewRouter erstellt den Router. Alle App-Routen liegen unter /v1 (§3, §10).
-func NewRouter(cfg *config.Config, jwt *auth.JWTManager, authH *auth.Handler, groupsH *groups.Handler) (*gin.Engine, error) {
+func NewRouter(cfg *config.Config, jwt *auth.JWTManager, authH *auth.Handler, groupsH *groups.Handler, postsH *posts.Handler) (*gin.Engine, error) {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.SecurityHeaders())
@@ -53,6 +54,11 @@ func NewRouter(cfg *config.Config, jwt *auth.JWTManager, authH *auth.Handler, gr
 			secured.POST("/groups", writeLimit, groupsH.CreateGroup)
 			secured.POST("/groups/:id/invite", writeLimit, groupsH.CreateInvite)
 			secured.POST("/invitations/:token/accept", writeLimit, groupsH.AcceptInvite)
+
+			// Beiträge + Feed (Phase 3).
+			secured.GET("/groups/:id/feed", postsH.Feed)
+			secured.POST("/groups/:id/posts", writeLimit, postsH.Create)
+			secured.PATCH("/posts/:id", writeLimit, postsH.ConfirmMeant)
 		}
 	}
 
