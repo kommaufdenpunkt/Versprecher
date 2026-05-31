@@ -4,6 +4,18 @@ Alle Zeiten in UTC. Neueste Einträge oben.
 
 ## 2026-05-31
 
+- **~10:25** (≈ 12:25 MESZ) – **Phase 2 umgesetzt** (Gruppen + Mitglieder +
+  Einladungen): Paket `internal/groups` (Service, Repository, Handler), Migration
+  `0004_groups` (`groups`, `group_members`, FK `invitations.group_id`). Endpoints
+  `POST /v1/groups`, `GET /v1/groups`, `GET /v1/groups/:id`,
+  `POST /v1/groups/:id/invite`, `POST /v1/invitations/:token/accept`. Registrierung
+  mit Gruppen-Einladung tritt direkt bei (verbindet Phase 1+2 über die kleine
+  Schnittstelle `auth.GroupJoiner`). `max_members` (Default 30) wird durchgesetzt.
+  Außerdem: **Einfach-Erklärung** `ERKLAERUNG.md`, **CI** unter
+  `.github/workflows/ci.yml` (Build, Vet, gofmt, Tests, **govulncheck**).
+  Unit-Tests grün; Phase 2 end-to-end gegen lokales Postgres verifiziert
+  (Gründen, Liste, Details, Einladen, Beitritt per Registrierung & per Accept,
+  Einmaligkeit, bereits-Mitglied 409, kein-Mitglied 403, Rate-Limit).
 - **~10:10** (≈ 12:10 MESZ) – **Phase 1 umgesetzt** (Gerüst + Auth): Go/Gin-Projekt
   (`cmd/server`, `internal/{config,db,auth,middleware,httpx}`), Migrationen
   (`users`, `invitations`, `email_verifications`) inkl. `scripts/migrate.sh` und
@@ -24,7 +36,6 @@ Alle Zeiten in UTC. Neueste Einträge oben.
 
 ## Nächste Schritte (geplant)
 
-- **Phase 2:** Gruppen + Mitglieder + Einladungen (`groups`, `group_members`,
-  FK auf `invitations.group_id`, `max_members`, Invite-Endpoint, `/invitations/:token/accept`).
+- **Phase 3:** Posts (Versprecher/Verhörer) + Feed; Fidolin-Worker (Moderation +
+  „gemeint"-Vorschlag).
 - Danach weiter Phase für Phase gemäß `ROADMAP.md`.
-- Offen aus Phase 1: CI-Pipeline (Build/Lint/Test/Migration-Check).

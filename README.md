@@ -5,6 +5,7 @@ beim Reden schiefgehen. Festhalten, gemeinsam lachen, später wiederentdecken.
 
 > Tagline (Favorit): **„Heute schon verhört?"**
 
+- **Einfach erklärt (für alle):** [ERKLAERUNG.md](./ERKLAERUNG.md)
 - **Spezifikation:** [SPEC.md](./SPEC.md)
 - **Roadmap (8 Phasen):** [ROADMAP.md](./ROADMAP.md)
 - **Offene Punkte:** [TODO.md](./TODO.md)
@@ -23,10 +24,12 @@ internal/
   config/          Konfiguration aus Umgebungsvariablen
   db/              PostgreSQL-Pool (pgx)
   auth/            Auth: Passwort, JWT, Tokens, Validierung, Service, Handler
+  groups/          Gruppen, Mitglieder, Einladungen (Service, Handler)
   middleware/      Auth, Rate-Limit, Security-Header
   httpx/           Router (/v1)
 migrations/        SQL-Migrationen (.up.sql / .down.sql)
 scripts/           dev_db.sh (DB+Rolle), migrate.sh (Migrationen anwenden)
+.github/workflows/ CI (Build, Vet, Format, Test, govulncheck)
 ```
 
 ## Schnellstart (lokal)
@@ -63,11 +66,26 @@ make test     # Unit-Tests (ohne DB, laufen überall)
 - **E-Mail-Verifizierung Pflicht**; Sperren über `users.status`.
 - **Security-Header** + **TrustedProxies** (echte Client-IP).
 
+## Endpoints (Phase 1 + 2)
+
+| Methode | Pfad | Zweck |
+|---|---|---|
+| POST | `/v1/auth/register` | Registrierung (Invite nötig; erster Account = Bootstrap-Admin) |
+| POST | `/v1/auth/login` | Login → JWT |
+| POST | `/v1/auth/verify-email` | E-Mail bestätigen |
+| GET | `/v1/me` | eigenes Profil |
+| POST | `/v1/groups` | Gruppe gründen |
+| GET | `/v1/groups` | meine Gruppen |
+| GET | `/v1/groups/:id` | Gruppen-Details (Rolle, Mitgliederzahl) |
+| POST | `/v1/groups/:id/invite` | Einladung erzeugen |
+| POST | `/v1/invitations/:token/accept` | Einladung annehmen |
+| GET | `/healthz` | Health-Check |
+
 ## Stand der Umsetzung
 
-- ✅ **Phase 1:** Scaffold, Auth, Invite-Registrierung
-  (`/v1/auth/register`, `/login`, `/verify-email`, `/me`).
-- ⏳ Phasen 2–8: siehe [ROADMAP.md](./ROADMAP.md).
+- ✅ **Phase 1:** Scaffold, Auth, Invite-Registrierung.
+- ✅ **Phase 2:** Gruppen, Mitglieder, Einladungen.
+- ⏳ Phasen 3–8: siehe [ROADMAP.md](./ROADMAP.md).
 
 ### Hinweise zu Phase 1
 

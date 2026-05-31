@@ -8,11 +8,12 @@ import (
 
 	"github.com/kommaufdenpunkt/insider/internal/auth"
 	"github.com/kommaufdenpunkt/insider/internal/config"
+	"github.com/kommaufdenpunkt/insider/internal/groups"
 	"github.com/kommaufdenpunkt/insider/internal/middleware"
 )
 
 // NewRouter erstellt den Router. Alle App-Routen liegen unter /v1 (§3, §10).
-func NewRouter(cfg *config.Config, jwt *auth.JWTManager, authH *auth.Handler) (*gin.Engine, error) {
+func NewRouter(cfg *config.Config, jwt *auth.JWTManager, authH *auth.Handler, groupsH *groups.Handler) (*gin.Engine, error) {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.SecurityHeaders())
@@ -40,11 +41,18 @@ func NewRouter(cfg *config.Config, jwt *auth.JWTManager, authH *auth.Handler) (*
 			a.POST("/verify-email", authH.VerifyEmail)
 		}
 
-		// Geschützte Endpoints.
+		// Geschützte Endpoints (gültiges JWT nötig).
 		secured := v1.Group("")
 		secured.Use(middleware.RequireAuth(jwt))
 		{
 			secured.GET("/me", authH.Me)
+
+			// Gruppen (Phase 2). Lesen frei, Schreiben ratenbegrenzt.
+			secured.GET("/groups", groupsH.ListMyGroups)
+			secured.GET("/groups/:id", groupsH.GetGroup)
+			secured.POST("/groups", writeLimit, groupsH.CreateGroup)
+			secured.POST("/groups/:id/invite", writeLimit, groupsH.CreateInvite)
+			secured.POST("/invitations/:token/accept", writeLimit, groupsH.AcceptInvite)
 		}
 	}
 

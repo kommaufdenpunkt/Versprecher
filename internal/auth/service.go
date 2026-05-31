@@ -17,22 +17,33 @@ var (
 	ErrEmailUnverified = errors.New("E-Mail noch nicht bestätigt")
 	ErrAccountBlocked  = errors.New("Konto gesperrt")
 	ErrTokenInvalid    = errors.New("Token ungültig oder abgelaufen")
+	ErrGroupFull       = errors.New("Gruppe ist voll")
 )
+
+// GroupJoiner verbindet die Registrierung mit dem Gruppenbeitritt (Phase 2).
+// Wird per Interface eingebunden, damit auth nicht von groups abhängt (kein Zyklus).
+// Bei nil (z. B. in Phase-1-Tests) erfolgt kein Gruppenbeitritt.
+type GroupJoiner interface {
+	HasCapacity(ctx context.Context, groupID int64) (bool, error)
+	AddMember(ctx context.Context, groupID, userID int64, invitedBy *int64) error
+}
 
 // Service bündelt die Auth-Geschäftslogik. Hängt nur am Repository-Interface,
 // am JWTManager und an wenigen Konfig-Flags — bewusst schlank gehalten.
 type Service struct {
 	repo                     Repository
 	jwt                      *JWTManager
+	joiner                   GroupJoiner // optional; bindet den Gruppenbeitritt an die Registrierung
 	requireEmailVerification bool
 	emailVerificationTTL     time.Duration
 	now                      func() time.Time // für Tests überschreibbar
 }
 
-func NewService(repo Repository, jwt *JWTManager, requireEmailVerification bool, emailVerificationTTL time.Duration) *Service {
+func NewService(repo Repository, jwt *JWTManager, joiner GroupJoiner, requireEmailVerification bool, emailVerificationTTL time.Duration) *Service {
 	return &Service{
 		repo:                     repo,
 		jwt:                      jwt,
+		joiner:                   joiner,
 		requireEmailVerification: requireEmailVerification,
 		emailVerificationTTL:     emailVerificationTTL,
 		now:                      time.Now,
@@ -95,6 +106,18 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*RegisterResu
 		inviteToAccept = inv
 	}
 
+	// Gehört die Einladung zu einer Gruppe? Dann früh prüfen, ob noch Platz ist,
+	// bevor wir ein Konto anlegen (vermeidet "Konto ohne Gruppe").
+	if inviteToAccept != nil && inviteToAccept.GroupID != nil && s.joiner != nil {
+		hasRoom, err := s.joiner.HasCapacity(ctx, *inviteToAccept.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		if !hasRoom {
+			return nil, ErrGroupFull
+		}
+	}
+
 	// E-Mail bereits vergeben? Generische Fehlermeldung (keine Enumeration).
 	if existing, err := s.repo.GetUserByEmail(ctx, email); err == nil && existing != nil {
 		return nil, ErrEmailTaken
@@ -119,6 +142,12 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*RegisterResu
 	}
 
 	if inviteToAccept != nil {
+		// Bei Gruppen-Einladung den neuen Nutzer direkt der Gruppe hinzufügen.
+		if inviteToAccept.GroupID != nil && s.joiner != nil {
+			if err := s.joiner.AddMember(ctx, *inviteToAccept.GroupID, user.ID, &inviteToAccept.InviterID); err != nil {
+				return nil, err
+			}
+		}
 		if err := s.repo.AcceptInvitation(ctx, inviteToAccept.ID); err != nil {
 			return nil, err
 		}

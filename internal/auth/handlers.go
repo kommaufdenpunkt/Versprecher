@@ -21,7 +21,7 @@ func errorStatus(err error) int {
 		return http.StatusBadRequest
 	case errors.Is(err, ErrInviteRequired), errors.Is(err, ErrInviteInvalid):
 		return http.StatusForbidden
-	case errors.Is(err, ErrEmailTaken):
+	case errors.Is(err, ErrEmailTaken), errors.Is(err, ErrGroupFull):
 		return http.StatusConflict
 	case errors.Is(err, ErrInvalidLogin), errors.Is(err, ErrEmailUnverified), errors.Is(err, ErrAccountBlocked):
 		return http.StatusUnauthorized

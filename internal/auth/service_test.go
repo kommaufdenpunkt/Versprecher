@@ -107,7 +107,8 @@ func (f *fakeRepo) DeleteEmailVerification(_ context.Context, id int64) error {
 
 func newTestService(repo Repository) *Service {
 	jwt := NewJWTManager("test-secret-mindestens-16", time.Hour)
-	return NewService(repo, jwt, true, 48*time.Hour)
+	// joiner == nil: Phase-1-Verhalten (kein Gruppenbeitritt bei Registrierung).
+	return NewService(repo, jwt, nil, true, 48*time.Hour)
 }
 
 func TestRegisterBootstrapFirstUserIsAdmin(t *testing.T) {

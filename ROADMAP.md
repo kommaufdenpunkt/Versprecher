@@ -3,7 +3,7 @@
 > Privates Wörterbuch für **Versprecher und Verhörer**.
 > Tagline (Favorit): **„Heute schon verhört?"** _(final noch zu bestätigen, siehe [TODO.md](./TODO.md))_
 >
-> _Zuletzt aktualisiert: 2026-05-31 09:59 UTC · Änderungen: [CHANGELOG.md](./CHANGELOG.md)_
+> _Zuletzt aktualisiert: 2026-05-31 10:25 UTC (12:25 MESZ) · Änderungen: [CHANGELOG.md](./CHANGELOG.md)_
 
 Diese Roadmap setzt die empfohlene Build-Reihenfolge aus der
 [Spezifikation](./SPEC.md) (Abschnitt 14) in konkrete, abhakbare Aufgaben um.
@@ -38,14 +38,18 @@ _Umgesetzt und end-to-end verifiziert (siehe CHANGELOG)._
 
 **Tabellen:** `users`, `invitations`, `email_verifications` · **Endpoints:** `/auth/*`, `/me`
 
-## Phase 2 – Gruppen, Mitglieder & Einladungen
+## Phase 2 – Gruppen, Mitglieder & Einladungen ✅
 
-- [ ] Migrationen: `groups` (inkl. `max_members` default 30), `group_members`
-- [ ] `POST /groups` (gründen), `GET /groups` (meine), `GET /groups/:id` (Details)
-- [ ] `POST /groups/:id/invite` – Einladungslink/Token erzeugen (sha256, einmalig)
-- [ ] `POST /invitations/:token/accept` – Einladung annehmen, Mitglied anlegen
-- [ ] `max_members` durchsetzen (finaler Wert offen, siehe TODOs)
-- [ ] Rollen `owner | member`; `invited_by`-Kette für Rückverfolgung (§11)
+_Umgesetzt und end-to-end verifiziert (siehe CHANGELOG)._
+
+- [x] Migrationen: `groups` (inkl. `max_members` default 30), `group_members`; FK `invitations.group_id` nachgezogen
+- [x] `POST /groups` (gründen, Ersteller wird Owner), `GET /groups` (meine), `GET /groups/:id` (Details + Rolle + Mitgliederzahl)
+- [x] `POST /groups/:id/invite` – Einladungstoken erzeugen (nur sha256-Hash gespeichert, einmalig, 7 Tage gültig)
+- [x] `POST /invitations/:token/accept` – Einladung annehmen, Mitglied anlegen
+- [x] Registrierung mit Gruppen-Einladung tritt direkt bei (verbindet Phase 1 + 2)
+- [x] `max_members` durchsetzen (Default 30, finaler Wert offen – siehe TODOs)
+- [x] Rollen `owner | member`; `invited_by`-Kette für Rückverfolgung (§11)
+- [x] Unit-Tests (Service mit Fake-Repo)
 
 **Tabellen:** `groups`, `group_members`, `invitations` · **Endpoints:** `/groups`, `/groups/:id`, `/groups/:id/invite`, `/invitations/:token/accept`
 

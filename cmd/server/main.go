@@ -8,6 +8,7 @@ import (
 	"github.com/kommaufdenpunkt/insider/internal/auth"
 	"github.com/kommaufdenpunkt/insider/internal/config"
 	"github.com/kommaufdenpunkt/insider/internal/db"
+	"github.com/kommaufdenpunkt/insider/internal/groups"
 	"github.com/kommaufdenpunkt/insider/internal/httpx"
 )
 
@@ -25,11 +26,18 @@ func main() {
 	defer pool.Close()
 
 	jwt := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTTTL)
-	repo := auth.NewPgRepository(pool)
-	svc := auth.NewService(repo, jwt, cfg.RequireEmailVerification, cfg.EmailVerificationTTL)
-	authH := auth.NewHandler(svc)
 
-	router, err := httpx.NewRouter(cfg, jwt, authH)
+	// Gruppen (Phase 2) — wird auch als GroupJoiner an den Auth-Service gereicht,
+	// damit die Registrierung mit Gruppen-Einladung direkt beitritt.
+	groupsRepo := groups.NewPgRepository(pool)
+	groupsSvc := groups.NewService(groupsRepo)
+	groupsH := groups.NewHandler(groupsSvc)
+
+	authRepo := auth.NewPgRepository(pool)
+	authSvc := auth.NewService(authRepo, jwt, groupsSvc, cfg.RequireEmailVerification, cfg.EmailVerificationTTL)
+	authH := auth.NewHandler(authSvc)
+
+	router, err := httpx.NewRouter(cfg, jwt, authH, groupsH)
 	if err != nil {
 		log.Fatalf("Router: %v", err)
 	}
