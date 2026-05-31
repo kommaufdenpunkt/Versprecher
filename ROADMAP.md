@@ -1,83 +1,136 @@
-# Versprecher – Roadmap & Build-Reihenfolge
+# Insider – Roadmap & Build-Reihenfolge
 
-> Tagline (Favorit): **„Heute schon verhört?"** _(final noch zu bestätigen, siehe TODOs)_
+> Privates Wörterbuch für **Versprecher und Verhörer**.
+> Tagline (Favorit): **„Heute schon verhört?"** _(final noch zu bestätigen, siehe [TODO.md](./TODO.md))_
 
-Diese Roadmap leitet sich aus der empfohlenen Build-Reihenfolge der Spezifikation
-(Abschnitt 14) ab. Die acht Phasen sind so geschnitten, dass jede Stufe auf der
-vorherigen aufbaut und für sich genommen lauffähig/testbar bleibt.
+Diese Roadmap setzt die empfohlene Build-Reihenfolge aus der
+[Spezifikation](./SPEC.md) (Abschnitt 14) in konkrete, abhakbare Aufgaben um.
+Jede Phase verweist auf die zugehörigen Tabellen (§6) und Endpoints (§10) und
+baut auf der vorherigen auf.
 
-Tech-Stack: **Go (Gin) + PostgreSQL** mit SQL-Migrationen, asynchroner
-Moderations-Worker („Fidolin"), Objekt-Storage für Voice-Snippets.
+**Tech-Stack:** Go + Gin, PostgreSQL, API-Prefix `/v1`, JWT-Auth (`uid`, `adm`).
+Flutter-App (PWA-fähig). Separates Moderations-Tool (React + Vite + TS).
+Sprachnotizen im Object Storage (presigned URLs, kurze TTL). KI „Fidolin" als
+Goroutine-Worker-Pool mit Polling.
+**DDL-Konvention:** Migrationen via `psql` als Superuser, App-User nur DML.
 
 ---
 
 ## Phase 1 – Scaffold, Auth & Invite-Registrierung
 
-Fundament: lauffähiger Service, Datenbank-Migrationen und sicherer Login per
-Einladung.
+Fundament: lauffähiger Service, Migrationen, sicherer Login **nur per Einladung**.
 
-- [ ] Projekt-Scaffold mit Go/Gin (Router, Config, Logging, Health-Check)
-- [ ] PostgreSQL anbinden + Migrations-Tooling (z. B. `golang-migrate`) einrichten
-- [ ] Basis-Migrationen: `users`, `sessions`/Tokens, `invites`
-- [ ] Auth: Registrierung **nur per Invite-Code**, Login, Logout, Passwort-Hashing
-- [ ] Session-/Token-Handling + Auth-Middleware
+- [ ] Projekt-Scaffold Go/Gin (Router unter `/v1`, Config, Logging, Health-Check)
+- [ ] PostgreSQL + Migrations-Setup (`psql`-Superuser für DDL, App-User nur DML)
+- [ ] Migrationen: `users`, `invitations`
+- [ ] JWT-Auth mit Claims `uid`, `adm`; Auth-Middleware
+- [ ] `POST /auth/register` – nur mit gültigem Invite-Token; `invited_by` setzen
+- [ ] `POST /auth/login` → JWT
+- [ ] `POST /auth/verify-email` – E-Mail-Verifizierung (Pflicht, §11)
+- [ ] Passwort-Hashing (bcrypt), `users.status`-Handling (`active/suspended/banned`)
+- [ ] Rate-Limiting auf Schreib-Endpoints, TrustedProxies für echte Client-IP
 - [ ] CI: Build, Lint, Tests, Migration-Check
+
+**Tabellen:** `users`, `invitations` · **Endpoints:** `/auth/*`
 
 ## Phase 2 – Gruppen, Mitglieder & Einladungen
 
-- [ ] Migrationen: `groups`, `group_members`, Rollen (Admin/Mitglied)
-- [ ] Gruppe erstellen / umbenennen / verlassen
-- [ ] Mitglieder einladen (Invite-Code/-Link, an Phase 1 gekoppelt)
-- [ ] `max_members` durchsetzen (Limit konfigurierbar, siehe TODOs)
-- [ ] Berechtigungen: Wer darf einladen, entfernen, moderieren?
+- [ ] Migrationen: `groups` (inkl. `max_members` default 30), `group_members`
+- [ ] `POST /groups` (gründen), `GET /groups` (meine), `GET /groups/:id` (Details)
+- [ ] `POST /groups/:id/invite` – Einladungslink/Token erzeugen (sha256, einmalig)
+- [ ] `POST /invitations/:token/accept` – Einladung annehmen, Mitglied anlegen
+- [ ] `max_members` durchsetzen (finaler Wert offen, siehe TODOs)
+- [ ] Rollen `owner | member`; `invited_by`-Kette für Rückverfolgung (§11)
 
-## Phase 3 – Posts & Feed + Fidolin-Worker
+**Tabellen:** `groups`, `group_members`, `invitations` · **Endpoints:** `/groups`, `/groups/:id`, `/groups/:id/invite`, `/invitations/:token/accept`
 
-- [ ] Migrationen: `posts` (inkl. `word`, `word_normalized`, optional Voice-Ref)
-- [ ] Post anlegen (Text + optional Voice-Snippet) und im Gruppen-Feed listen
-- [ ] Feed-Endpoint (Pagination, Sortierung)
-- [ ] **Fidolin-Worker** als asynchroner Job:
-  - [ ] Moderations-Check beim Anlegen
-  - [ ] „gemeint"-Vorschlag (was war wohl gemeint?) generieren
-- [ ] Worker-Infrastruktur (Queue/Job-Tabelle, Retry, Status am Post)
+## Phase 3 – Posts anlegen + Feed + Fidolin-Worker
+
+- [ ] Migration: `posts` (inkl. `word`, `word_normalized`, `kind`, `voice_url`, `ai_*`, `status`)
+- [ ] Hashtag-Validierung beim Wort: `^#?[A-Za-zÄÖÜäöüß]{1,12}$` (max. 12 Buchstaben)
+- [ ] `word_normalized` (lowercase/trim) für spätere Aggregation berechnen
+- [ ] `POST /groups/:id/posts` – Beitrag anlegen, Voice-Snippet optional (presigned)
+- [ ] `GET /groups/:id/feed` – Feed (Pagination, Sortierung)
+- [ ] `PATCH /posts/:id` – „gemeint"/`kind` durch Verfasser bestätigen/ändern
+- [ ] **Fidolin-Worker** (Goroutine-Pool, Polling) – JSON-Vertrag §7:
+  - [ ] IN `{word, explanation}` → OUT `{score, reason, kind_suggestion, meant_suggestion}`
+  - [ ] Felder füllen: `ai_score`, `ai_kind_suggestion`, `ai_meant_suggestion`
+  - [ ] Schwellen aus `moderation_settings`: `≥0.85` → `blocked`, `≥0.60` → `pending_review`, sonst `visible`
+  - [ ] Fallback bei KI-Fehler → `pending_review`
+- [ ] Wichtig: Fidolin filtert **nicht** die lustigen Versprecher raus; nur Hass/Übergriffiges
+
+**Tabellen:** `posts` (+ liest `moderation_settings`) · **Endpoints:** `/groups/:id/posts`, `/groups/:id/feed`, `/posts/:id`
 
 ## Phase 4 – Reaktionen & Kommentare (mit Moderation)
 
 - [ ] Migrationen: `reactions`, `comments`
-- [ ] Reaktionen setzen/entfernen
-- [ ] Kommentare erstellen/löschen
-- [ ] Moderation auch für Kommentare durch Fidolin
-- [ ] Counts/Aggregation für Feed-Anzeige
+- [ ] `POST /posts/:id/react` – nur `😂 ❤️ 😭` (CHECK), eine Reaktion pro Person (PK)
+- [ ] `GET /posts/:id/comments`, `POST /posts/:id/comments`
+- [ ] Kommentar-Moderation durch Fidolin (`comments.ai_score`, `comments.status`)
+- [ ] **Keine Downvotes** (Kernprinzip §2/§12)
 
-## Phase 5 – Übersicht (Pinnen) & privater Duden
+**Tabellen:** `reactions`, `comments` · **Endpoints:** `/posts/:id/react`, `/posts/:id/comments`
 
-- [ ] Posts pinnen → Gruppen-Übersicht
-- [ ] **Privater Duden**: pro Gruppe gesammelte Versprecher/Begriffe
-- [ ] Duden-Einträge aus Posts ableiten (`word_normalized` als Schlüssel)
-- [ ] Übersicht-/Duden-Endpoints + Sortierung
+## Phase 5 – Übersicht (Pinnen) + privater Duden
 
-## Phase 6 – Einwilligungs-Flow, öffentlicher Duden & Aggregation
+- [ ] `POST /posts/:id/pin` – an-/abpinnen (`posts.is_pinned`)
+- [ ] `GET /groups/:id/overview` – gepinnte Beiträge **+** Insider (landen direkt hier)
+- [ ] `GET /groups/:id/duden` – privater Duden A–Z (volles Wort + Erklärung + O-Ton + wer's war)
 
-- [ ] **Einwilligungs-Flow**: Nutzer:innen geben Begriffe für die Öffentlichkeit frei
-- [ ] **Öffentlicher Duden** (gruppenübergreifend)
-- [ ] **Aggregation** gleicher Begriffe – zunächst **exakt über `word_normalized`**
-      (Fuzzy/Levenshtein als späterer Ausbau, siehe TODOs)
-- [ ] Datenschutz: nur freigegebene Begriffe veröffentlichen
+**Endpoints:** `/posts/:id/pin`, `/groups/:id/overview`, `/groups/:id/duden`
+
+## Phase 6 – Einwilligungs-Flow + öffentlicher Duden + Aggregation
+
+- [ ] Migrationen: `publications`, `public_duden_entries`
+- [ ] `POST /posts/:id/publish-request` – Veröffentlichung anstoßen, Beteiligte benachrichtigen
+- [ ] `POST /posts/:id/consent` – Zustimmung + Namens-Sichtbarkeit setzen (author / tagged)
+- [ ] `POST /posts/:id/revoke` – zurück in die Gruppe (`state = revoked`)
+- [ ] **Doppelte Einwilligung** exakt nach §8 umsetzen:
+  - [ ] `author_consent` **und** (`author == tagged` ODER `tagged_consent`)
+  - [ ] Markierte Person nicht in Gruppe/nicht vorhanden → bleibt privat
+  - [ ] Schweigen = **Nein** (kein Auto-Approve nach Timeout)
+  - [ ] Widerruf jederzeit durch Verfasser *oder* markierte Person
+- [ ] Namens-Sichtbarkeit getrennt: `name_visible_author` / `name_visible_tagged` (jede:r nur über eigenen Namen)
+- [ ] **Aggregation** über `word_normalized` (exakt): existiert → `occurrence_count += 1`, sonst neu
+- [ ] `GET /duden` – öffentlicher Duden: **nur Wort + Zähler** (+ optional freigegebene Namen), nie privater Inhalt/O-Ton
+- [ ] Fuzzy-Matching (Levenshtein) bewusst später (siehe TODOs)
+
+**Tabellen:** `publications`, `public_duden_entries` · **Endpoints:** `/posts/:id/publish-request`, `/posts/:id/consent`, `/posts/:id/revoke`, `/duden`
 
 ## Phase 7 – Moderations-Tool
 
-- [ ] Moderations-**Queue** (offene Fälle aus Fidolin)
-- [ ] **Schwellen**/Thresholds konfigurierbar (Auto-Freigabe vs. manuell)
-- [ ] **Duden-Freigabe** durch Moderation
-- [ ] Audit/Log der Moderationsentscheidungen
+Separate Oberfläche (React + Vite + TS), Routen für `moderator`/`admin`.
 
-## Phase 8 – Rituale
+- [ ] Migrationen: `moderation_settings` (Defaults `0.85` / `0.60`), `moderation_queue` (oder Sicht auf `pending_review`)
+- [ ] `GET /mod/queue` – markierte Beiträge/Kommentare (Score, Grund)
+- [ ] `POST /mod/posts/:id/decision`, `POST /mod/comments/:id/decision` – freigeben/blockieren
+- [ ] `POST /mod/duden/:word/approve` – Wort für öffentlichen Duden freigeben (`approved = true`)
+- [ ] `GET / PUT /mod/settings` – Schwellen lesen/ändern
+- [ ] `POST /mod/users/:id/suspend` – Nutzer sperren (`users.status`)
 
-- [ ] **Wort des Monats / Wort des Jahres** (pro Gruppe; global TODO offen)
-- [ ] **Erinnerungen / Push-Notifications**
+**Tabellen:** `moderation_settings`, `moderation_queue` · **Endpoints:** `/mod/*`
+
+## Phase 8 – Rituale (Wort des Monats/Jahres, Erinnerungen/Push)
+
+- [ ] Migrationen: `word_of_month`(+`_votes`), `word_of_year`(+`_votes`)
+- [ ] `POST /groups/:id/word-of-month/vote`, `GET /groups/:id/word-of-month/:yyyymm`
+- [ ] `POST /groups/:id/word-of-year/vote` (nur aus 12 Monatssiegern), `GET /groups/:id/word-of-year/:yyyy`
+- [ ] **Geburtstag eines Wortes:** Push „X wird heute 1 Jahr alt 🎂"
+- [ ] **Jahresrückblick** pro Gruppe (Wort des Jahres, fleißigste Versprecher-Person)
+- [ ] **Sperrbildschirm-Erinnerung (PWA):** „Vor 5 Monaten hat … gesagt"
 - [ ] Scheduler/Cron für wiederkehrende Rituale
+- [ ] Offen: globales „Wort des Monats" im öffentlichen Duden? (siehe TODOs)
+
+**Tabellen:** `word_of_month(_votes)`, `word_of_year(_votes)` · **Endpoints:** `/groups/:id/word-of-month/*`, `/groups/:id/word-of-year/*`
 
 ---
+
+## Querschnittsthemen (durchgehend beachten)
+
+- **Privat per Default** – nichts ohne ausdrückliche Zustimmung öffentlich (§2).
+- **Echte Menschen** – nur auf Einladung, ein Mensch = ein Profil, kein Login über Dritte (§2/§11).
+- **DSGVO** – Sprachnotizen sind personenbezogene Daten: Einwilligung, Löschkonzept, Export; Impressum + Datenschutz von Anfang an (§11).
+- **Bewusst weglassen** – Drittanbieter-Login, Follower-/Reichweiten-Ranking, Downvotes, große öffentliche Gruppen (§13).
 
 ## Abhängigkeiten (Kurzüberblick)
 
@@ -97,4 +150,5 @@ Einladung.
                                   8 Rituale
 ```
 
-Siehe **[TODO.md](./TODO.md)** für offene Entscheidungen.
+Siehe **[SPEC.md](./SPEC.md)** für die vollständige Spezifikation und
+**[TODO.md](./TODO.md)** für offene Entscheidungen.
