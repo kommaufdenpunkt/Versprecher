@@ -83,8 +83,11 @@ Grobe Aufteilung des Portals in Bereiche. Wer welchen sieht, steht in Klammern.
      **Woche für Woche übernehmen**. Pro Woche noch **ergänzen oder entfernen**.
    - **Manuell ein Termin per Hand** dazubuchen (außerhalb der Slots) ist möglich.
    - **Fahrschüler** sieht die **freien** Slots seines Fahrlehrers und bucht sich rein.
+   - **Buchungsart pro Slot — der Fahrlehrer entscheidet (beides möglich):**
+     - 🟢 **Verbindlich:** Schüler klickt → sofort gebucht (z. B. normale Wochen-Slots).
+     - 🟡 **Auf Anfrage:** Schüler fragt an → Fahrlehrer bestätigt (z. B. Randzeiten/Sonderwünsche).
    - Leitprinzip: **dem Fahrlehrer die Freiheiten lassen** — Vorlage ist Angebot,
-     kein Zwang. „Flexibel, quadratisch, praktisch, gut."
+     kein Zwang; auch die Buchungsart wählt er selbst. „Flexibel, quadratisch, praktisch, gut."
 
 6. **Verwaltung / Konten & Rollen** _(Chef)_
    - Wer hat welchen Zugang? Nutzer anlegen/sperren.
@@ -131,7 +134,7 @@ auf echte Personen-/Finanzdaten schauen._
 | 5 | Gibt es weitere Tarife außer 80 Min = 130 € (z. B. Theorie, Prüfungsgebühren)? |
 | 6 | Müssen Fahrlehrer auch **Geld kassieren** dürfen, oder läuft alles Geld über Dataport/Büro? |
 | 7 | Web-Portal für alle, oder zusätzlich **App** für Fahrlehrer (unterwegs abhaken)? |
-| 8 | **Buchung:** bucht der Fahrschüler einen Slot **direkt verbindlich**, oder erst **anfragen** und der Fahrlehrer bestätigt? |
+| ~~8~~ | ~~**Buchung:** verbindlich oder auf Anfrage?~~ → **geklärt:** beides, **pro Slot** vom Fahrlehrer wählbar (siehe §4.5). |
 | 9 | Darf ein Fahrschüler einen gebuchten Termin selbst **stornieren/verschieben** — bis wie lange vorher (Frist)? |
 | 10 | Sehen Fahrschüler **Namen** anderer Schüler in belegten Slots, oder nur „belegt/frei" (Datenschutz)? |
 | 11 | Soll eine Buchung automatisch eine **Fahrstunde** (80 Min / 130 €) anlegen, oder erst beim Abhaken durch den Fahrlehrer? |
