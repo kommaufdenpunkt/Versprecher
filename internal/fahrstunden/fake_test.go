@@ -124,7 +124,8 @@ func (r *fakeRepo) CreateStunde(_ context.Context, p StundeParams, l LimitPruefu
 	f := Fahrstunde{
 		ID: r.id(), FahrlehrerID: p.FahrlehrerID, FahrschuelerID: p.FahrschuelerID,
 		SchuelerName: s.Name, SchuelerKlasse: s.Klasse,
-		GefahrenAm: tagesbeginn(p.GefahrenAm), EingetragenAm: tagesbeginn(p.EingetragenAm),
+		GefahrenAm: tagesbeginn(p.GefahrenAm), GefahrenVon: p.GefahrenVon,
+		EingetragenAm: tagesbeginn(p.EingetragenAm), EingetragenUm: p.EingetragenUm,
 		DauerMinuten: p.DauerMinuten, Art: p.Art, Notiz: p.Notiz,
 		UnterschriftPNG:   p.UnterschriftPNG,
 		LimitUebersteuert: p.LimitUebersteuert, LimitGrund: p.LimitGrund,
@@ -166,6 +167,13 @@ func (r *fakeRepo) UpdateStunde(_ context.Context, id, fahrlehrerID int64, u Stu
 	}
 	if u.GefahrenAm != nil {
 		f.GefahrenAm = tagesbeginn(*u.GefahrenAm)
+	}
+	// Zeiger auf "" heißt „Uhrzeit entfernen“, nil heißt „unverändert“.
+	if u.GefahrenVon != nil {
+		f.GefahrenVon = *u.GefahrenVon
+	}
+	if u.EingetragenUm != nil {
+		f.EingetragenUm = *u.EingetragenUm
 	}
 	f.EingetragenAm, f.DauerMinuten = neuTag, neuDauer
 	if u.Art != nil {

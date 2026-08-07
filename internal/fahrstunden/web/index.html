@@ -170,12 +170,21 @@ button.leise{
         <label for="f-schueler">Fahrschüler:in</label>
         <select id="f-schueler" required></select>
 
-        <label for="f-gefahren">Gefahren am</label>
-        <input id="f-gefahren" type="date" required>
+        <div class="reihe">
+          <div>
+            <label for="f-gefahren">Gefahren am</label>
+            <input id="f-gefahren" type="date" required>
+          </div>
+          <div>
+            <label for="f-gefahren-von">Uhrzeit (Beginn)</label>
+            <input id="f-gefahren-von" type="time" step="300">
+          </div>
+        </div>
         <div class="chips">
           <button class="chip" type="button" data-tag="0">Heute</button>
           <button class="chip" type="button" data-tag="-1">Gestern</button>
           <button class="chip" type="button" data-tag="-2">Vorgestern</button>
+          <span class="chip" id="fahrzeit-ende" style="border-style:dashed"></span>
         </div>
 
         <label for="f-dauer">Dauer in Minuten</label>
@@ -198,6 +207,8 @@ button.leise{
         <input id="f-eingetragen" type="date" style="margin-top:8px" hidden>
         <div class="chips" id="vorschlaege"></div>
         <div class="tag-info" id="tag-info">Wird geladen …</div>
+        <label for="f-eingetragen-um">Uhrzeit im FS&nbsp;Manager</label>
+        <input id="f-eingetragen-um" type="time" step="300">
 
         <label for="f-notiz">Notiz</label>
         <textarea id="f-notiz" placeholder="z. B. Überlandfahrt B27, Kreisverkehr geübt"></textarea>
@@ -221,8 +232,13 @@ button.leise{
     <section id="r-stunden" hidden>
       <div class="karte">
         <h2>Eingetragene Fahrstunden</h2>
-        <p class="hinweis">Liste filtern und als PDF zum Unterschreiben ausdrucken.</p>
-        <div class="reihe">
+        <p class="hinweis">Namen suchen, Liste prüfen, als A4-PDF weitergeben — teilen, herunterladen oder ausdrucken.</p>
+
+        <label for="l-suche">Name suchen</label>
+        <input id="l-suche" type="search" placeholder="Name eintippen …" autocomplete="off">
+        <div class="chips" id="l-treffer"></div>
+
+        <div class="reihe" style="margin-top:12px">
           <div>
             <label for="l-schueler">Fahrschüler:in</label>
             <select id="l-schueler"></select>
@@ -237,8 +253,9 @@ button.leise{
           </div>
         </div>
         <div class="chips">
-          <button class="chip" type="button" id="l-laden">Liste anzeigen</button>
+          <button class="chip" type="button" id="l-teilen" hidden>PDF teilen (WhatsApp …)</button>
           <button class="chip" type="button" id="l-pdf">PDF herunterladen</button>
+          <button class="chip" type="button" id="l-drucken">PDF drucken</button>
           <button class="chip" type="button" id="l-zuruecksetzen">Filter zurücksetzen</button>
         </div>
         <div id="l-meldung" class="meldung" hidden></div>
@@ -338,6 +355,19 @@ function abstandText(tage) {
   if (tage === 0) return "am Fahrtag";
   const betrag = Math.abs(tage);
   return `${betrag} Tag${betrag === 1 ? "" : "e"} ${tage < 0 ? "davor" : "danach"}`;
+}
+
+// Uhrzeit auf 5 Minuten gerundet — schnell einzutippen und schnell zu lesen.
+function jetztAufFuenf() {
+  const d = new Date();
+  d.setMinutes(Math.round(d.getMinutes() / 5) * 5, 0, 0);
+  return `${zweistellig(d.getHours())}:${zweistellig(d.getMinutes())}`;
+}
+function zeitPlus(zeit, minuten) {
+  if (!/^\d{2}:\d{2}$/.test(zeit || "")) return "";
+  const [h, m] = zeit.split(":").map(Number);
+  const gesamt = (((h * 60 + m + minuten) % 1440) + 1440) % 1440;
+  return `${zweistellig(Math.floor(gesamt / 60))}:${zweistellig(gesamt % 60)}`;
 }
 
 function zeige(el, text, art) {
@@ -602,6 +632,7 @@ document.querySelectorAll("[data-dauer]").forEach((chip) => {
   chip.addEventListener("click", () => {
     $("f-dauer").value = chip.dataset.dauer;
     markiereDauerChips();
+    zeigeFahrzeitEnde(); // Endzeit hängt an der Dauer und muss mitwandern
     zeichneKapazitaet();
   });
 });
@@ -610,6 +641,14 @@ function markiereDauerChips() {
   const wert = $("f-dauer").value;
   document.querySelectorAll("[data-dauer]").forEach((c) =>
     c.setAttribute("aria-pressed", String(c.dataset.dauer === wert)));
+}
+
+// Endzeit mitrechnen, damit sofort sichtbar ist, was im Nachweis stehen wird.
+function zeigeFahrzeitEnde() {
+  const von = $("f-gefahren-von").value;
+  const dauer = Number($("f-dauer").value) || 0;
+  const bis = zeitPlus(von, dauer);
+  $("fahrzeit-ende").textContent = bis ? `${von}–${bis} Uhr` : "ohne Uhrzeit";
 }
 
 async function gefahrenTagGeaendert() {
@@ -627,7 +666,12 @@ async function gefahrenTagGeaendert() {
 
 $("f-gefahren").addEventListener("change", gefahrenTagGeaendert);
 $("f-eingetragen").addEventListener("change", zeichneKapazitaet);
-$("f-dauer").addEventListener("input", () => { markiereDauerChips(); zeichneKapazitaet(); });
+$("f-gefahren-von").addEventListener("input", zeigeFahrzeitEnde);
+$("f-dauer").addEventListener("input", () => {
+  markiereDauerChips();
+  zeigeFahrzeitEnde();
+  zeichneKapazitaet();
+});
 
 /* ------------------------------------------------- Eintragen: Speichern */
 
@@ -641,6 +685,8 @@ $("stunde-form").addEventListener("submit", async (e) => {
   const koerper = {
     fahrschueler_id: Number($("f-schueler").value),
     gefahren_am: $("f-gefahren").value,
+    gefahren_von: $("f-gefahren-von").value,
+    eingetragen_um: $("f-eingetragen-um").value,
     dauer_minuten: Number($("f-dauer").value),
     art: $("f-art").value,
     notiz: $("f-notiz").value,
@@ -654,10 +700,13 @@ $("stunde-form").addEventListener("submit", async (e) => {
   try {
     const daten = await api("/stunden", { method: "POST", body: JSON.stringify(koerper) });
     const s = daten.stunde;
+    const fahrzeit = s.gefahren_von ? ` um ${s.gefahren_von}–${s.gefahren_bis} Uhr` : "";
+    const eintragzeit = s.eingetragen_um ? ` um ${s.eingetragen_um} Uhr` : "";
     const verschoben = s.abweichung_tage !== 0
-      ? ` — eingetragen am ${deDatum(s.eingetragen_am)} (${abstandText(s.abweichung_tage)})`
-      : " — am selben Tag eingetragen";
-    zeige(meldung, `Gespeichert: ${s.schueler_name}, gefahren am ${deDatum(s.gefahren_am)}${verschoben}.`, "gut");
+      ? ` — eingetragen am ${deDatum(s.eingetragen_am)}${eintragzeit} (${abstandText(s.abweichung_tage)})`
+      : ` — am selben Tag eingetragen${eintragzeit}`;
+    zeige(meldung,
+      `Gespeichert: ${s.schueler_name}, gefahren am ${deDatum(s.gefahren_am)}${fahrzeit}${verschoben}.`, "gut");
 
     $("f-notiz").value = "";
     unterschriftLeeren();
@@ -701,8 +750,10 @@ function stundeKarte(s) {
       ${marker.join(" ")}
     </div>
     <div class="meta">
-      gefahren am <strong>${deDatum(s.gefahren_am)}</strong> ·
-      eingetragen am <strong>${deDatum(s.eingetragen_am)}</strong> ·
+      gefahren am <strong>${deDatum(s.gefahren_am)}</strong>${
+        s.gefahren_von ? ` <strong>${s.gefahren_von}–${s.gefahren_bis} Uhr</strong>` : ""} ·
+      eingetragen am <strong>${deDatum(s.eingetragen_am)}</strong>${
+        s.eingetragen_um ? ` <strong>${s.eingetragen_um} Uhr</strong>` : ""} ·
       ${s.dauer_minuten} Min · ${escapeHTML(s.art_label)}
     </div>
     ${s.notiz ? `<div class="notiz">${escapeHTML(s.notiz)}</div>` : ""}
@@ -773,32 +824,114 @@ async function ladeStunden() {
   }
 }
 
-$("l-laden").addEventListener("click", ladeStunden);
 ["l-schueler", "l-von", "l-bis"].forEach((id) => $(id).addEventListener("change", ladeStunden));
 $("l-zuruecksetzen").addEventListener("click", () => {
   $("l-schueler").value = ""; $("l-von").value = ""; $("l-bis").value = "";
+  $("l-suche").value = ""; zeichneTreffer();
   ladeStunden();
 });
 
-$("l-pdf").addEventListener("click", async () => {
+// Namenssuche: tippen, antippen, fertig — der Filter springt direkt um.
+function zeichneTreffer() {
+  const suche = $("l-suche").value.trim().toLowerCase();
+  const treffer = $("l-treffer");
+  treffer.innerHTML = "";
+  if (!suche) return;
+
+  const passend = schuelerListe.filter((s) => s.name.toLowerCase().includes(suche)).slice(0, 8);
+  if (!passend.length) {
+    treffer.innerHTML = '<span style="font-size:13px;color:var(--text-leise)">Kein Treffer.</span>';
+    return;
+  }
+  passend.forEach((s) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.setAttribute("aria-pressed", String(String(s.id) === $("l-schueler").value));
+    chip.textContent = s.name + (s.klasse ? " · " + s.klasse : "");
+    chip.addEventListener("click", () => {
+      $("l-schueler").value = s.id;
+      zeichneTreffer();
+      ladeStunden();
+    });
+    treffer.appendChild(chip);
+  });
+}
+$("l-suche").addEventListener("input", zeichneTreffer);
+
+// PDF einmal holen und je nach Knopf teilen, speichern oder drucken.
+async function holePDF() {
   const id = $("l-schueler").value;
-  if (!id) { zeige($("l-meldung"), "Bitte zuerst eine Fahrschülerin oder einen Fahrschüler auswählen.", "warn"); return; }
-  zeige($("l-meldung"), "PDF wird erstellt …", "");
+  if (!id) {
+    zeige($("l-meldung"), "Bitte zuerst einen Namen auswählen — über die Suche oder die Liste.", "warn");
+    return null;
+  }
   const teile = [];
   if ($("l-von").value) teile.push("von=" + $("l-von").value);
   if ($("l-bis").value) teile.push("bis=" + $("l-bis").value);
+
+  zeige($("l-meldung"), "PDF wird erstellt …", "");
+  const blob = await api(`/schueler/${id}/nachweis.pdf` + (teile.length ? "?" + teile.join("&") : ""));
+  const name = (schuelerListe.find((s) => String(s.id) === String(id)) || {}).name || "Nachweis";
+  return { blob, datei: `Fahrstunden-${name.replace(/[^\wÄÖÜäöüß-]+/g, "-")}.pdf`, name };
+}
+
+$("l-pdf").addEventListener("click", async () => {
   try {
-    const blob = await api(`/schueler/${id}/nachweis.pdf` + (teile.length ? "?" + teile.join("&") : ""));
-    const name = (schuelerListe.find((s) => String(s.id) === String(id)) || {}).name || "Nachweis";
-    const url = URL.createObjectURL(blob);
+    const pdf = await holePDF();
+    if (!pdf) return;
+    const url = URL.createObjectURL(pdf.blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Fahrstunden-${name.replace(/[^\wÄÖÜäöüß-]+/g, "-")}.pdf`;
+    a.download = pdf.datei;
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
     zeige($("l-meldung"), "PDF wurde heruntergeladen.", "gut");
+  } catch (fehler) {
+    zeige($("l-meldung"), fehler.message, "fehler");
+  }
+});
+
+// Teilen geht nur, wenn das Gerät es kann (Handy: WhatsApp, Mail, AirDrop …).
+$("l-teilen").addEventListener("click", async () => {
+  try {
+    const pdf = await holePDF();
+    if (!pdf) return;
+    const datei = new File([pdf.blob], pdf.datei, { type: "application/pdf" });
+    if (!navigator.canShare || !navigator.canShare({ files: [datei] })) {
+      zeige($("l-meldung"), "Dieses Gerät kann die Datei nicht direkt teilen — bitte herunterladen.", "warn");
+      return;
+    }
+    await navigator.share({
+      files: [datei],
+      title: `Fahrstunden-Nachweis ${pdf.name}`,
+      text: `Fahrstunden-Nachweis für ${pdf.name}`,
+    });
+    zeige($("l-meldung"), "PDF wurde weitergegeben.", "gut");
+  } catch (fehler) {
+    // Bricht die Person das Teilen ab, ist das kein Fehler.
+    if (fehler && fehler.name === "AbortError") { zeige($("l-meldung"), ""); return; }
+    zeige($("l-meldung"), fehler.message, "fehler");
+  }
+});
+
+// Drucken: PDF in einem eigenen Fenster öffnen und den Druckdialog anstoßen.
+$("l-drucken").addEventListener("click", async () => {
+  try {
+    const pdf = await holePDF();
+    if (!pdf) return;
+    const url = URL.createObjectURL(pdf.blob);
+    const fenster = window.open(url, "_blank");
+    if (!fenster) {
+      zeige($("l-meldung"), "Das Fenster wurde blockiert — bitte Pop-ups erlauben oder das PDF herunterladen.", "warn");
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      return;
+    }
+    fenster.addEventListener("load", () => fenster.print(), { once: true });
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    zeige($("l-meldung"), "PDF geöffnet — der Druckdialog kommt gleich.", "gut");
   } catch (fehler) {
     zeige($("l-meldung"), fehler.message, "fehler");
   }
@@ -850,7 +983,9 @@ async function ladeSchueler() {
     .map((s) => `<option value="${s.id}">${escapeHTML(s.name)}${s.klasse ? " · " + escapeHTML(s.klasse) : ""}</option>`)
     .join("");
   $("f-schueler").innerHTML = optionen || '<option value="">— noch niemand angelegt —</option>';
+  const vorherAusgewaehlt = $("l-schueler").value;
   $("l-schueler").innerHTML = '<option value="">Alle</option>' + optionen;
+  $("l-schueler").value = vorherAusgewaehlt; // Auswahl beim Neuladen behalten
 
   const liste = $("s-liste");
   liste.innerHTML = "";
@@ -931,9 +1066,17 @@ async function starten() {
       `Pro Eintragetag sind ${stamm.limit_minuten} Minuten möglich.<br>` +
       `Der Nachweis hält „gefahren am“ und „eingetragen am“ getrennt fest.`;
 
+    // Teilen nur anbieten, wenn das Gerät es kann (Handy: WhatsApp, Mail …).
+    $("l-teilen").hidden = !(navigator.share && navigator.canShare);
+
     await ladeSchueler();
     $("f-gefahren").value = heute();
+    // Uhrzeiten vorbelegen: direkt nach der Fahrstunde stimmt das meistens
+    // und ist sonst mit zwei Tippern geändert.
+    $("f-gefahren-von").value = jetztAufFuenf();
+    $("f-eingetragen-um").value = jetztAufFuenf();
     markiereDauerChips();
+    zeigeFahrzeitEnde();
     setzeModusChips();
     await gefahrenTagGeaendert();
   } catch (fehler) {

@@ -1,0 +1,30 @@
+# Caddyfile — Fahrstunden-Nachweis unter ginos.de
+#
+# Caddy holt und erneuert das HTTPS-Zertifikat selbst; es ist nichts weiter
+# einzurichten. Voraussetzung: ginos.de und www.ginos.de zeigen per A-/AAAA-
+# Eintrag auf diesen Server, und die Ports 80 und 443 sind offen.
+#
+# Starten:  caddy run --config Caddyfile
+# Als Dienst: caddy reload --config /etc/caddy/Caddyfile
+
+ginos.de {
+	# Die Anwendung lauscht nur auf localhost — von außen kommt man
+	# ausschließlich über Caddy und damit nur verschlüsselt heran.
+	reverse_proxy 127.0.0.1:8080
+
+	# HSTS: der Browser merkt sich, dass diese Domain nur per HTTPS geht.
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+	encode gzip zstd
+
+	log {
+		output file /var/log/caddy/ginos.log
+		# Keine Anfragekörper mitschreiben — dort stehen Unterschriften drin.
+		format console
+	}
+}
+
+# www auf die Hauptadresse umleiten, damit es nur eine gültige URL gibt.
+www.ginos.de {
+	redir https://ginos.de{uri} permanent
+}

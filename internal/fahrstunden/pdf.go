@@ -34,16 +34,18 @@ const (
 	randUnten    = 16.0
 	inhaltBreite = seiteBreite - 2*randLinks
 
-	spNr            = 9.0
-	spGefahren      = 24.0
-	spEingetragen   = 24.0
-	spArt           = 34.0
-	spDauer         = 17.0
-	spNotiz         = 44.0
-	spUnterschrift  = 34.0
-	zeileMin        = 7.0
+	spNr           = 8.0
+	spGefahren     = 32.0
+	spEingetragen  = 32.0
+	spArt          = 27.0
+	spDauer        = 14.0
+	spNotiz        = 39.0
+	spUnterschrift = 34.0
+
+	zeileMin        = 12.0 // trägt Datum + Uhrzeit übereinander
 	zeileMitBild    = 13.0
 	notizZeileHoehe = 3.8
+	zeitZeileHoehe  = 3.6
 )
 
 // NachweisPDF baut den Fahrstunden-Nachweis als PDF.
@@ -155,9 +157,11 @@ func (s *nachweisSeite) kopf() {
 	p.SetTextColor(90, 90, 90)
 	p.SetXY(randLinks, s.y)
 	p.MultiCell(inhaltBreite, 3.8, s.tr(
-		"Gefahren am = Tag der tatsächlichen Fahrstunde. Eingetragen am = Tag, unter dem die Stunde "+
-			"im FS Manager verbucht ist. Beides kann abweichen, weil der FS Manager pro Tag höchstens "+
-			strconv.Itoa(s.daten.TageslimitMinuten)+" Minuten zulässt."), "", "L", false)
+		"Gefahren am = Tag und Uhrzeit der tatsächlichen Fahrstunde. Eingetragen am = Tag und Uhrzeit, "+
+			"unter der die Stunde im FS Manager verbucht ist. Beides kann abweichen, weil der FS Manager "+
+			"pro Tag höchstens "+strconv.Itoa(s.daten.TageslimitMinuten)+" Minuten zulässt. "+
+			"Die kleine Zeile „erfasst“ nennt den Zeitpunkt, zu dem der Eintrag in diesem Nachweis "+
+			"angelegt wurde."), "", "L", false)
 	p.SetTextColor(0, 0, 0)
 	s.y = p.GetY() + 3
 }
@@ -197,32 +201,51 @@ func (s *nachweisSeite) zeitraum() string {
 	}
 }
 
+// Spaltenköpfe zweizeilig: „Gefahren am“ über „Datum · Uhrzeit“. Einzeilig
+// würde der Text in die Nachbarspalte laufen.
 var spalten = []struct {
-	titel string
-	w     float64
-	align string
+	titel, untertitel string
+	w                 float64
+	align             string
 }{
-	{"Nr.", spNr, "C"},
-	{"Gefahren am", spGefahren, "L"},
-	{"Eingetragen am", spEingetragen, "L"},
-	{"Art", spArt, "L"},
-	{"Dauer", spDauer, "R"},
-	{"Notiz", spNotiz, "L"},
-	{"Unterschrift", spUnterschrift, "C"},
+	{"Nr.", "", spNr, "C"},
+	{"Gefahren am", "Datum · Uhrzeit", spGefahren, "L"},
+	{"Eingetragen am", "Datum · Uhrzeit", spEingetragen, "L"},
+	{"Art", "", spArt, "L"},
+	{"Dauer", "", spDauer, "R"},
+	{"Notiz", "", spNotiz, "L"},
+	{"Unterschrift", "", spUnterschrift, "C"},
 }
+
+const kopfHoehe = 9.0
 
 func (s *nachweisSeite) tabellenKopf() {
 	p := s.pdf
-	p.SetFont("Helvetica", "B", 8)
 	p.SetFillColor(238, 240, 243)
 	p.SetDrawColor(190, 195, 200)
+
 	x := randLinks
 	for _, c := range spalten {
-		p.SetXY(x, s.y)
-		p.CellFormat(c.w, 7, s.tr(c.titel), "1", 0, c.align, true, 0, "")
+		// Rahmen und Füllung erst, dann der Text darüber.
+		p.Rect(x, s.y, c.w, kopfHoehe, "FD")
+
+		if c.untertitel == "" {
+			p.SetFont("Helvetica", "B", 8)
+			p.SetXY(x, s.y)
+			p.CellFormat(c.w, kopfHoehe, s.tr(c.titel), "", 0, c.align, false, 0, "")
+		} else {
+			p.SetFont("Helvetica", "B", 8)
+			p.SetXY(x, s.y+1.2)
+			p.CellFormat(c.w, 4, s.tr(c.titel), "", 0, c.align, false, 0, "")
+			p.SetFont("Helvetica", "", 6.5)
+			p.SetTextColor(105, 105, 105)
+			p.SetXY(x, s.y+4.8)
+			p.CellFormat(c.w, 3.4, s.tr(c.untertitel), "", 0, c.align, false, 0, "")
+			p.SetTextColor(0, 0, 0)
+		}
 		x += c.w
 	}
-	s.y += 7
+	s.y += kopfHoehe
 }
 
 // zeile zeichnet eine Fahrstunde. Die Zeilenhöhe wächst mit der Notiz und mit
@@ -271,12 +294,17 @@ func (s *nachweisSeite) zeile(nr int, f *Fahrstunde) {
 	}
 
 	zelle(spNr, strconv.Itoa(nr), "C", false)
-	zelle(spGefahren, FormatDatumDE(f.GefahrenAm), "L", false)
 
-	// Beim Eintragetag die Verschiebung direkt danebenschreiben (+2 / −3 Tage).
-	p.SetFont("Helvetica", "", 8)
-	p.SetXY(x, s.y)
-	p.CellFormat(spEingetragen, hoehe, s.tr(FormatDatumDE(f.EingetragenAm)+abweichungKurz(f)), "", 0, "L", false, 0, "")
+	// Die beiden Beweisspalten: Datum oben, Uhrzeit darunter. Beim Eintragetag
+	// kommt die Verschiebung dazu (+2 / −3 T) und darunter, wann der Eintrag
+	// in diesem Nachweis erfasst wurde — das ist die eigentliche Spur.
+	s.datumsZelle(x, spGefahren, hoehe,
+		FormatDatumDE(f.GefahrenAm), f.Fahrzeitraum(), "")
+	x += spGefahren
+
+	s.datumsZelle(x, spEingetragen, hoehe,
+		FormatDatumDE(f.EingetragenAm)+abweichungKurz(f), uhrzeitText(f.EingetragenUm),
+		"erfasst "+FormatErfasst(f.CreatedAt))
 	x += spEingetragen
 
 	zelle(spArt, ArtLabel(f.Art), "L", false)
@@ -302,6 +330,56 @@ func (s *nachweisSeite) zeile(nr int, f *Fahrstunde) {
 	}
 
 	s.y += hoehe
+}
+
+// datumsZelle setzt Datum, Uhrzeit und eine kleine Fußzeile untereinander und
+// zentriert den Block senkrecht in der Zeile. Leere Zeilen entfallen.
+func (s *nachweisSeite) datumsZelle(x, breite, hoehe float64, datum, zeit, fuss string) {
+	p := s.pdf
+
+	zeilen := 1.0
+	if zeit != "" {
+		zeilen++
+	}
+	if fuss != "" {
+		zeilen++
+	}
+	y := s.y + (hoehe-zeilen*zeitZeileHoehe)/2
+
+	p.SetFont("Helvetica", "", 8)
+	p.SetXY(x, y)
+	p.CellFormat(breite, zeitZeileHoehe, s.tr(datum), "", 0, "L", false, 0, "")
+	y += zeitZeileHoehe
+
+	if zeit != "" {
+		p.SetFont("Helvetica", "B", 8)
+		p.SetXY(x, y)
+		p.CellFormat(breite, zeitZeileHoehe, s.tr(zeit), "", 0, "L", false, 0, "")
+		y += zeitZeileHoehe
+	}
+	if fuss != "" {
+		p.SetFont("Helvetica", "", 6)
+		p.SetTextColor(130, 130, 130)
+		p.SetXY(x, y)
+		p.CellFormat(breite, zeitZeileHoehe, s.tr(fuss), "", 0, "L", false, 0, "")
+		p.SetTextColor(0, 0, 0)
+	}
+}
+
+// uhrzeitText macht aus einer Uhrzeit „19:30 Uhr“ — leer bleibt leer.
+func uhrzeitText(u Uhrzeit) string {
+	if !u.Gesetzt() {
+		return ""
+	}
+	return string(u) + " Uhr"
+}
+
+// FormatErfasst schreibt den Erfassungszeitpunkt kurz als „07.08. 20:14“.
+func FormatErfasst(t time.Time) string {
+	if t.IsZero() {
+		return "—"
+	}
+	return t.Local().Format("02.01. 15:04")
 }
 
 // unterschrift zeichnet das Unterschriftsbild — oder eine Linie zum Unterschreiben

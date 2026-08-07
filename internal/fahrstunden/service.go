@@ -101,9 +101,13 @@ type AnlegenInput struct {
 	FahrlehrerID   int64
 	FahrschuelerID int64
 	GefahrenAm     time.Time
+	// GefahrenVon ist der Beginn der Fahrstunde (HH:MM, optional).
+	GefahrenVon string
 	// EingetragenAm leer lassen heißt: den nächstmöglichen Tag automatisch
 	// wählen (zuerst der Fahrtag selbst, dann die Tage rundherum).
-	EingetragenAm     time.Time
+	EingetragenAm time.Time
+	// EingetragenUm ist die Uhrzeit im FS Manager (HH:MM, optional).
+	EingetragenUm     string
 	DauerMinuten      int
 	Art               string
 	Notiz             string
@@ -130,6 +134,15 @@ func (s *Service) AnlegenStunde(ctx context.Context, in AnlegenInput) (*Fahrstun
 	}
 	in.GefahrenAm = tagesbeginn(in.GefahrenAm)
 	if !plausiblesDatum(in.GefahrenAm) {
+		return nil, ErrUngueltigeEingabe
+	}
+
+	gefahrenVon, ok := bereinigeUhrzeit(in.GefahrenVon)
+	if !ok {
+		return nil, ErrUngueltigeEingabe
+	}
+	eingetragenUm, ok := bereinigeUhrzeit(in.EingetragenUm)
+	if !ok {
 		return nil, ErrUngueltigeEingabe
 	}
 
@@ -168,7 +181,9 @@ func (s *Service) AnlegenStunde(ctx context.Context, in AnlegenInput) (*Fahrstun
 		FahrlehrerID:      in.FahrlehrerID,
 		FahrschuelerID:    in.FahrschuelerID,
 		GefahrenAm:        in.GefahrenAm,
+		GefahrenVon:       gefahrenVon,
 		EingetragenAm:     eingetragenAm,
+		EingetragenUm:     eingetragenUm,
 		DauerMinuten:      in.DauerMinuten,
 		Art:               in.Art,
 		Notiz:             kuerze(in.Notiz, maxNotizLen),
@@ -178,10 +193,13 @@ func (s *Service) AnlegenStunde(ctx context.Context, in AnlegenInput) (*Fahrstun
 	}, LimitPruefung{LimitMinuten: s.limit, Uebersteuern: in.LimitUebersteuern})
 }
 
-// AendernInput sind die änderbaren Felder einer Fahrstunde.
+// AendernInput sind die änderbaren Felder einer Fahrstunde. nil heißt
+// „unverändert“; bei den Uhrzeiten heißt ein Zeiger auf "" „Uhrzeit entfernen“.
 type AendernInput struct {
 	GefahrenAm        *time.Time
+	GefahrenVon       *string
 	EingetragenAm     *time.Time
+	EingetragenUm     *string
 	DauerMinuten      *int
 	Art               *string
 	Notiz             *string
@@ -208,6 +226,20 @@ func (s *Service) AendernStunde(ctx context.Context, id, fahrlehrerID int64, in 
 			return nil, ErrUngueltigeEingabe
 		}
 		u.EingetragenAm = &d
+	}
+	if in.GefahrenVon != nil {
+		z, ok := bereinigeUhrzeit(*in.GefahrenVon)
+		if !ok {
+			return nil, ErrUngueltigeEingabe
+		}
+		u.GefahrenVon = &z
+	}
+	if in.EingetragenUm != nil {
+		z, ok := bereinigeUhrzeit(*in.EingetragenUm)
+		if !ok {
+			return nil, ErrUngueltigeEingabe
+		}
+		u.EingetragenUm = &z
 	}
 	if in.DauerMinuten != nil && (*in.DauerMinuten < minDauer || *in.DauerMinuten > maxDauer) {
 		return nil, ErrUngueltigeEingabe

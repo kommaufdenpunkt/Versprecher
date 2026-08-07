@@ -87,12 +87,17 @@ func NewRouter(cfg *config.Config, jwt *auth.JWTManager, authH *auth.Handler, gr
 	}
 
 	// Oberfläche des Fahrstunden-Nachweises unter einem frei wählbaren Pfad
-	// (FAHRSTUNDEN_BASIS_PFAD) — so kann sie später unter eigenem Namen oder
-	// einer eigenen Domain laufen, ohne Änderung im Code.
-	basis := cfg.FahrstundenBasisPfad
-	r.GET(basis, fahrWeb.Seite)
-	r.GET(basis+"/", fahrWeb.Seite)
-	r.GET(basis+"/konfig.json", fahrWeb.Konfig)
+	// (FAHRSTUNDEN_BASIS_PFAD) — so kann sie unter eigenem Namen oder einer
+	// eigenen Domain laufen, ohne Änderung im Code.
+	if basis := cfg.FahrstundenBasisPfad; basis == "/" {
+		// Eigene Domain (z. B. ginos.de): die Oberfläche liegt auf der Wurzel.
+		r.GET("/", fahrWeb.Seite)
+		r.GET("/konfig.json", fahrWeb.Konfig)
+	} else {
+		r.GET(basis, fahrWeb.Seite)
+		r.GET(basis+"/", fahrWeb.Seite)
+		r.GET(basis+"/konfig.json", fahrWeb.Konfig)
+	}
 
 	return r, nil
 }

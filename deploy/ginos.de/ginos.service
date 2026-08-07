@@ -1,0 +1,34 @@
+# systemd-Dienst für den Fahrstunden-Nachweis unter ginos.de.
+# Kopieren nach /etc/systemd/system/ginos.service, dann:
+#   systemctl daemon-reload && systemctl enable --now ginos
+# Log ansehen: journalctl -u ginos -f
+
+[Unit]
+Description=Fahrstunden-Nachweis (ginos.de)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ginos
+Group=ginos
+
+# Geheimnisse kommen aus der Datei, nie aus der Kommandozeile
+# (dort wären sie in der Prozessliste sichtbar).
+EnvironmentFile=/etc/ginos.env
+ExecStart=/usr/local/bin/ginos-server
+
+Restart=always
+RestartSec=3
+
+# Der Dienst braucht nichts vom System außer seiner Datenbankverbindung.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

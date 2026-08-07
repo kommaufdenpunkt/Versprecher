@@ -96,17 +96,18 @@ unter `/fahrstunden` — siehe [FAHRSTUNDEN.md](./FAHRSTUNDEN.md).
 
 Der FS Manager lässt pro Tag nur **495 Minuten** zu. Wird an einem Tag mehr
 gefahren, muss die Stunde unter einem anderen Tag verbucht werden. Damit die
-Dokumentation lückenlos bleibt, hält dieses Nebenbuch beide Daten getrennt fest:
+Dokumentation lückenlos bleibt, hält dieses Nebenbuch beides getrennt fest:
 
-- **gefahren am** — der Tag der tatsächlichen Fahrstunde
-- **eingetragen am** — der Tag, unter dem sie im FS Manager verbucht ist
+- **gefahren am** — Tag **und Uhrzeit** der tatsächlichen Fahrstunde
+- **eingetragen am** — Tag **und Uhrzeit**, unter denen sie im FS Manager steht
 
 Dazu Art, Notiz und die **Unterschrift** der Fahrschüler:innen (mit dem Finger
-auf dem Handy) — ausdruckbar als **PDF** je Fahrschüler:in. Das Tageslimit wird
-auf `eingetragen_am` geprüft; passt eine Stunde nicht, schlägt der Dienst
-konkrete Ausweichtage vor, statt still zu überbuchen.
+auf dem Handy) — als **A4-PDF** je Fahrschüler:in zum Teilen, Herunterladen oder
+Ausdrucken. Das Tageslimit wird auf `eingetragen_am` geprüft; passt eine Stunde
+nicht, schlägt der Dienst konkrete Ausweichtage vor, statt still zu überbuchen.
 
 Details, Endpoints und Konfiguration: [FAHRSTUNDEN.md](./FAHRSTUNDEN.md).
+Betrieb unter einer eigenen Domain: [deploy/ginos.de/](./deploy/ginos.de/).
 
 ## Fidolin (KI-Moderation)
 

@@ -4,6 +4,26 @@ Alle Zeiten in UTC. Neueste Einträge oben.
 
 ## 2026-08-07
 
+- **Uhrzeiten im Fahrstunden-Nachweis** (Migration `0008_fahrstunden_uhrzeiten`):
+  `gefahren_von` und `eingetragen_um` ergänzt, damit der Nachweis
+  „gefahren am 09.09. um 14:00 Uhr, eingetragen am 05.09. um 19:30 Uhr“ belegen
+  kann. Beide optional; Altbestand bleibt gültig.
+  - Die **Endzeit wird gerechnet**, nicht gespeichert (`14:00` + 90 Min =
+    `14:00–15:30`), inklusive Nachtfahrten über Mitternacht (`23:15` + 90 Min =
+    `23:15–00:45`). So kann sie nie von der Dauer abweichen.
+  - Eingaben werden nachsichtig gelesen (`9:05`, `14:00:00`) und einheitlich als
+    `HH:MM` abgelegt; Unsinn wird mit 400 abgelehnt.
+  - **PDF** mit zweizeiligen Spaltenköpfen: Datum oben, Uhrzeit darunter, dazu
+    eine kleine Zeile, wann der Eintrag erfasst wurde.
+  - **Oberfläche:** Zeitfelder mit Vorbelegung auf die aktuelle Uhrzeit,
+    mitlaufende Endzeit, **Namenssuche** und **PDF teilen** (auf dem Handy an
+    WhatsApp, Mail, AirDrop) neben Herunterladen und Drucken.
+- **Betrieb unter eigener Domain:** `FAHRSTUNDEN_BASIS_PFAD=/` legt die
+  Oberfläche direkt auf die Wurzel (z. B. `https://ginos.de`). Vorlagen für
+  Reverse-Proxy mit HTTPS, systemd-Dienst und Umgebung unter
+  [deploy/ginos.de/](./deploy/ginos.de/). Tests für die Pfad-Normalisierung und
+  die Konfigurationsprüfungen ergänzt.
+
 - **Fahrstunden-Nachweis** (Nebenbuch zum FS Manager) hinzugefügt: Paket
   `internal/fahrstunden`, Migration `0007_fahrstunden` (`fahrschueler`,
   `fahrstunden`). Hält **„gefahren am“ und „eingetragen am“ getrennt** fest,

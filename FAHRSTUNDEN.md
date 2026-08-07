@@ -1,8 +1,9 @@
 # Fahrstunden-Nachweis — das Nebenbuch zum FS Manager
 
-Ein privates, lückenloses Verzeichnis der Fahrstunden: **gefahren am** und
-**eingetragen am** getrennt festgehalten, mit Notiz und Unterschrift der
-Fahrschülerin bzw. des Fahrschülers — ausdruckbar als PDF.
+Ein privates, lückenloses Verzeichnis der Fahrstunden: **gefahren am (mit
+Uhrzeit)** und **eingetragen am (mit Uhrzeit)** getrennt festgehalten, mit Notiz
+und Unterschrift der Fahrschülerin bzw. des Fahrschülers — als A4-PDF zum
+Weitergeben, Verschicken oder Ausdrucken.
 
 ## Warum das nötig ist
 
@@ -16,11 +17,20 @@ Daten** fest:
 
 | Feld | Bedeutung |
 |---|---|
-| `gefahren_am` | Der Tag, an dem die Fahrstunde tatsächlich stattgefunden hat |
-| `eingetragen_am` | Der Tag, unter dem sie im FS Manager verbucht ist |
+| `gefahren_am` + `gefahren_von` | Tag und Uhrzeit der tatsächlichen Fahrstunde |
+| `eingetragen_am` + `eingetragen_um` | Tag und Uhrzeit, unter denen sie im FS Manager verbucht ist |
 
 Das Tageslimit gilt auf **`eingetragen_am`** — das ist der Arbeitszeit-Tag im
 FS Manager. Der Fahrtag selbst wird nicht begrenzt.
+
+Die **Endzeit wird nicht gespeichert**, sondern aus Anfangszeit und Dauer
+gerechnet (`14:00` + 90 Min = `14:00–15:30`). So kann sie nie von der Dauer
+abweichen; Nachtfahrten über Mitternacht rechnet sie korrekt um (`23:15` + 90
+Min = `23:15–00:45`).
+
+Beide Uhrzeiten sind **optional** — ein Eintrag ohne Uhrzeit bleibt gültig.
+Zusätzlich hält jeder Eintrag fest, **wann er angelegt wurde** (`erfasst`); im
+PDF steht das als kleine Zeile unter dem Eintragedatum.
 
 ## Was es kann
 
@@ -34,8 +44,11 @@ FS Manager. Der Fahrtag selbst wird nicht begrenzt.
 - **Bewusst überschreiten** ist möglich — aber nur mit Begründung, die an der
   Stunde gespeichert wird. Sonst wäre der Nachweis nicht mehr nachvollziehbar.
 - **Unterschrift** direkt auf dem Gerät mit dem Finger, je Fahrstunde.
-- **PDF-Nachweis** je Fahrschüler: beide Daten nebeneinander, Abweichung
-  markiert, Summen, Unterschriften und ein Unterschriftsblock zum Gegenzeichnen.
+- **PDF-Nachweis** je Fahrschüler: beide Daten mit Uhrzeit nebeneinander,
+  Abweichung markiert, Summen, Unterschriften und ein Unterschriftsblock zum
+  Gegenzeichnen.
+- **Weitergeben, wie es gerade passt:** Namen suchen, dann teilen (auf dem Handy
+  direkt an WhatsApp, Mail oder AirDrop), herunterladen oder drucken.
 
 ## Oberfläche
 
@@ -50,6 +63,22 @@ Abhängigkeiten, für das Handy gebaut (große Bedienflächen, Unterschriftsfeld
 helles und dunkles Erscheinungsbild). Angemeldet wird sich mit dem normalen
 Konto; alle Daten gehören ausschließlich diesem Konto.
 
+Vier Reiter:
+
+| Reiter | Wofür |
+|---|---|
+| **Eintragen** | Fahrstunde erfassen, mit Live-Anzeige der freien Minuten und Unterschrift |
+| **Stunden** | Namen suchen, Liste prüfen, PDF teilen / herunterladen / drucken |
+| **Tage** | Auslastung von vier Wochen auf einen Blick |
+| **Fahrschüler** | Anlegen und auf inaktiv setzen |
+
+Die Uhrzeiten sind beim Öffnen mit der aktuellen Zeit (auf 5 Minuten gerundet)
+vorbelegt — direkt nach der Fahrstunde stimmt das meistens und ist sonst mit
+zwei Tippern geändert. Die Endzeit rechnet beim Tippen mit.
+
+Der Knopf **„PDF teilen"** erscheint nur auf Geräten, die das können (Handy und
+Tablet); am Rechner bleiben Herunterladen und Drucken.
+
 ## Konfiguration
 
 Alles über Umgebungsvariablen — im Code steht nichts fest:
@@ -62,16 +91,20 @@ Alles über Umgebungsvariablen — im Code steht nichts fest:
 | `FAHRSTUNDEN_FAHRSCHULE` | *(leer)* | Kopfzeile im PDF |
 
 **Eigener Name, eigene URL:** Der Basispfad ist frei wählbar. Soll der Nachweis
-später zum Beispiel unter `/gino` laufen, reicht:
+unter `/ginos` laufen, reicht:
 
 ```bash
-FAHRSTUNDEN_BASIS_PFAD=/gino
-FAHRSTUNDEN_APP_NAME=Gino
+FAHRSTUNDEN_BASIS_PFAD=/ginos
+FAHRSTUNDEN_APP_NAME=Ginos
 ```
 
-Alles Weitere liegt dann unter diesem Pfad; die Oberfläche leitet ihre eigenen
-Adressen daraus ab. Für eine eigene Domain (z. B. `gino.de`) genügt ein
-Reverse-Proxy auf denselben Pfad — im Code ist dafür nichts zu ändern.
+**Eigene Domain (ginos.de):** Mit `FAHRSTUNDEN_BASIS_PFAD=/` liegt die
+Oberfläche direkt auf der Wurzel — also `https://ginos.de` statt
+`https://ginos.de/fahrstunden`. Fertige Vorlagen für Reverse-Proxy, Dienst und
+Umgebung: **[deploy/ginos.de/](./deploy/ginos.de/)**.
+
+Die Oberfläche leitet ihre eigenen Adressen aus ihrem Ort ab; im Code ist für
+beides nichts zu ändern.
 
 ## Endpoints
 
@@ -101,16 +134,20 @@ Dazu ohne Anmeldung, nur für die Oberfläche:
 ```bash
 curl -X POST localhost:8080/v1/fahrstunden/stunden \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"fahrschueler_id":2,"gefahren_am":"2026-08-10","dauer_minuten":90,
-       "art":"ueberlandfahrt","notiz":"Überland B27"}'
+  -d '{"fahrschueler_id":2,"gefahren_am":"2026-08-10","gefahren_von":"14:00",
+       "dauer_minuten":90,"art":"ueberlandfahrt","notiz":"Überland B27"}'
 ```
 
 Ist der 10.08. schon voll, antwortet der Dienst mit dem nächstgelegenen Tag:
 
 ```json
-{"stunde":{"gefahren_am":"2026-08-10","eingetragen_am":"2026-08-09",
-           "abweichung_tage":-1, "...":"..."}}
+{"stunde":{"gefahren_am":"2026-08-10","gefahren_von":"14:00","gefahren_bis":"15:30",
+           "eingetragen_am":"2026-08-09","abweichung_tage":-1, "...":"..."}}
 ```
+
+Uhrzeiten werden nachsichtig gelesen und einheitlich als `HH:MM` gespeichert:
+`9:05` und `14:00:00` gehen genauso wie `09:05`. Unsinn (`25:00`, `halb drei`)
+wird mit 400 abgelehnt statt still verworfen.
 
 ### Beispiel: das Tageslimit wird erreicht
 
@@ -139,12 +176,13 @@ wurde.
 
 ## Datenmodell
 
-`migrations/0007_fahrstunden.up.sql` legt zwei Tabellen an:
+`migrations/0007_fahrstunden.up.sql` legt zwei Tabellen an,
+`0008_fahrstunden_uhrzeiten.up.sql` ergänzt die Uhrzeiten:
 
 - **`fahrschueler`** — Name, Klasse, Notiz, aktiv; Name je Fahrlehrer eindeutig.
-- **`fahrstunden`** — `gefahren_am`, `eingetragen_am`, `dauer_minuten`, `art`,
-  `notiz`, `unterschrift_png`, `unterschrieben_am`, `limit_uebersteuert`,
-  `limit_grund`.
+- **`fahrstunden`** — `gefahren_am`, `gefahren_von`, `eingetragen_am`,
+  `eingetragen_um`, `dauer_minuten`, `art`, `notiz`, `unterschrift_png`,
+  `unterschrieben_am`, `limit_uebersteuert`, `limit_grund`, `created_at`.
 
 Beide hängen über `fahrlehrer_id` am Konto. Der Index
 `(fahrlehrer_id, eingetragen_am)` trägt die Tageslimit-Prüfung.

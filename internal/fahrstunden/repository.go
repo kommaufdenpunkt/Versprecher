@@ -140,21 +140,55 @@ func (r *PgRepository) ListSchueler(ctx context.Context, fahrlehrerID int64, nur
 	return out, rows.Err()
 }
 
-const stundeColumns = `f.id, f.fahrlehrer_id, f.fahrschueler_id, f.gefahren_am, f.eingetragen_am,
+// Uhrzeiten werden als HH:MM gelesen — pgx bildet TIME sonst auf einen
+// eigenen Typ ab, und für Anzeige und PDF ist die Textform genau richtig.
+const stundeColumns = `f.id, f.fahrlehrer_id, f.fahrschueler_id,
+	f.gefahren_am, to_char(f.gefahren_von, 'HH24:MI'),
+	f.eingetragen_am, to_char(f.eingetragen_um, 'HH24:MI'),
 	f.dauer_minuten, f.art, f.notiz, f.unterschrift_png, f.unterschrieben_am,
 	f.limit_uebersteuert, f.limit_grund, f.created_at, f.updated_at, s.name, s.klasse`
 
+// scanZiele bündelt die Reihenfolge aus stundeColumns an einer Stelle, damit
+// Einzel- und Listenabfrage nicht auseinanderlaufen können.
+func scanZiele(f *Fahrstunde, gefahrenVon, eingetragenUm **string) []any {
+	return []any{
+		&f.ID, &f.FahrlehrerID, &f.FahrschuelerID,
+		&f.GefahrenAm, gefahrenVon,
+		&f.EingetragenAm, eingetragenUm,
+		&f.DauerMinuten, &f.Art, &f.Notiz, &f.UnterschriftPNG, &f.UnterschriebenAm,
+		&f.LimitUebersteuert, &f.LimitGrund, &f.CreatedAt, &f.UpdatedAt,
+		&f.SchuelerName, &f.SchuelerKlasse,
+	}
+}
+
+// uhrzeit macht aus dem NULL-fähigen Textwert der Datenbank eine Uhrzeit.
+func uhrzeit(s *string) Uhrzeit {
+	if s == nil {
+		return ""
+	}
+	return Uhrzeit(*s)
+}
+
+// nullUhrzeit macht aus einer leeren Uhrzeit ein SQL-NULL.
+func nullUhrzeit(u Uhrzeit) *string {
+	if !u.Gesetzt() {
+		return nil
+	}
+	s := string(u)
+	return &s
+}
+
 func scanStunde(row pgx.Row) (*Fahrstunde, error) {
 	var f Fahrstunde
-	err := row.Scan(&f.ID, &f.FahrlehrerID, &f.FahrschuelerID, &f.GefahrenAm, &f.EingetragenAm,
-		&f.DauerMinuten, &f.Art, &f.Notiz, &f.UnterschriftPNG, &f.UnterschriebenAm,
-		&f.LimitUebersteuert, &f.LimitGrund, &f.CreatedAt, &f.UpdatedAt, &f.SchuelerName, &f.SchuelerKlasse)
+	var gefahrenVon, eingetragenUm *string
+	err := row.Scan(scanZiele(&f, &gefahrenVon, &eingetragenUm)...)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, err
 	}
+	f.GefahrenVon, f.EingetragenUm = uhrzeit(gefahrenVon), uhrzeit(eingetragenUm)
 	return &f, nil
 }
 
@@ -235,15 +269,17 @@ func (r *PgRepository) CreateStunde(ctx context.Context, p StundeParams, l Limit
 
 	f, err := scanStunde(tx.QueryRow(ctx,
 		`WITH neu AS (
-		     INSERT INTO fahrstunden (fahrlehrer_id, fahrschueler_id, gefahren_am, eingetragen_am,
-		                              dauer_minuten, art, notiz, unterschrift_png, unterschrieben_am,
+		     INSERT INTO fahrstunden (fahrlehrer_id, fahrschueler_id, gefahren_am, gefahren_von,
+		                              eingetragen_am, eingetragen_um, dauer_minuten, art, notiz,
+		                              unterschrift_png, unterschrieben_am,
 		                              limit_uebersteuert, limit_grund)
-		     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		     VALUES ($1, $2, $3, $4::time, $5, $6::time, $7, $8, $9, $10, $11, $12, $13)
 		     RETURNING *
 		 )
 		 SELECT `+stundeColumns+`
 		 FROM neu f JOIN fahrschueler s ON s.id = f.fahrschueler_id`,
-		p.FahrlehrerID, p.FahrschuelerID, p.GefahrenAm, p.EingetragenAm, p.DauerMinuten,
+		p.FahrlehrerID, p.FahrschuelerID, p.GefahrenAm, nullUhrzeit(p.GefahrenVon),
+		p.EingetragenAm, nullUhrzeit(p.EingetragenUm), p.DauerMinuten,
 		p.Art, p.Notiz, p.UnterschriftPNG, unterschriebenAm, p.LimitUebersteuert, p.LimitGrund))
 	if err != nil {
 		return nil, err
@@ -284,6 +320,16 @@ func (r *PgRepository) UpdateStunde(ctx context.Context, id, fahrlehrerID int64,
 		}
 	}
 
+	// Uhrzeiten: NULL heißt „unverändert“, der Leerstring heißt „entfernen“.
+	// Deshalb reicht COALESCE hier nicht, es braucht ein eigenes „gesetzt“-Flag.
+	var gefahrenVon, eingetragenUm *string
+	if u.GefahrenVon != nil {
+		gefahrenVon = nullUhrzeit(*u.GefahrenVon)
+	}
+	if u.EingetragenUm != nil {
+		eingetragenUm = nullUhrzeit(*u.EingetragenUm)
+	}
+
 	f, err := scanStunde(tx.QueryRow(ctx,
 		`WITH geaendert AS (
 		     UPDATE fahrstunden
@@ -292,8 +338,10 @@ func (r *PgRepository) UpdateStunde(ctx context.Context, id, fahrlehrerID int64,
 		         dauer_minuten      = COALESCE($5, dauer_minuten),
 		         art                = COALESCE($6, art),
 		         notiz              = COALESCE($7, notiz),
-		         limit_uebersteuert = CASE WHEN $8 THEN true ELSE limit_uebersteuert END,
-		         limit_grund        = COALESCE($9, limit_grund),
+		         gefahren_von       = CASE WHEN $8  THEN $9::time  ELSE gefahren_von   END,
+		         eingetragen_um     = CASE WHEN $10 THEN $11::time ELSE eingetragen_um END,
+		         limit_uebersteuert = CASE WHEN $12 THEN true ELSE limit_uebersteuert END,
+		         limit_grund        = COALESCE($13, limit_grund),
 		         updated_at         = now()
 		     WHERE id = $1 AND fahrlehrer_id = $2
 		     RETURNING *
@@ -301,6 +349,8 @@ func (r *PgRepository) UpdateStunde(ctx context.Context, id, fahrlehrerID int64,
 		 SELECT `+stundeColumns+`
 		 FROM geaendert f JOIN fahrschueler s ON s.id = f.fahrschueler_id`,
 		id, fahrlehrerID, u.GefahrenAm, u.EingetragenAm, u.DauerMinuten, u.Art, u.Notiz,
+		u.GefahrenVon != nil, gefahrenVon,
+		u.EingetragenUm != nil, eingetragenUm,
 		l.Uebersteuern, u.LimitGrund))
 	if err != nil {
 		return nil, err
@@ -347,12 +397,11 @@ func (r *PgRepository) ListStunden(ctx context.Context, f Filter) ([]Fahrstunde,
 	out := []Fahrstunde{}
 	for rows.Next() {
 		var s Fahrstunde
-		if err := rows.Scan(&s.ID, &s.FahrlehrerID, &s.FahrschuelerID, &s.GefahrenAm, &s.EingetragenAm,
-			&s.DauerMinuten, &s.Art, &s.Notiz, &s.UnterschriftPNG, &s.UnterschriebenAm,
-			&s.LimitUebersteuert, &s.LimitGrund, &s.CreatedAt, &s.UpdatedAt,
-			&s.SchuelerName, &s.SchuelerKlasse); err != nil {
+		var gefahrenVon, eingetragenUm *string
+		if err := rows.Scan(scanZiele(&s, &gefahrenVon, &eingetragenUm)...); err != nil {
 			return nil, err
 		}
+		s.GefahrenVon, s.EingetragenUm = uhrzeit(gefahrenVon), uhrzeit(eingetragenUm)
 		out = append(out, s)
 	}
 	return out, rows.Err()

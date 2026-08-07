@@ -104,7 +104,10 @@ func stundeView(f *Fahrstunde) gin.H {
 		"schueler_name":      f.SchuelerName,
 		"schueler_klasse":    f.SchuelerKlasse,
 		"gefahren_am":        FormatDatum(f.GefahrenAm),
+		"gefahren_von":       f.GefahrenVon,
+		"gefahren_bis":       f.GefahrenBis(),
 		"eingetragen_am":     FormatDatum(f.EingetragenAm),
+		"eingetragen_um":     f.EingetragenUm,
 		"abweichung_tage":    f.AbweichungTage(),
 		"dauer_minuten":      f.DauerMinuten,
 		"art":                f.Art,
@@ -203,7 +206,9 @@ func (h *Handler) UpdateSchueler(c *gin.Context) {
 type stundeRequest struct {
 	FahrschuelerID    int64   `json:"fahrschueler_id"`
 	GefahrenAm        *string `json:"gefahren_am"`
+	GefahrenVon       *string `json:"gefahren_von"`
 	EingetragenAm     *string `json:"eingetragen_am"`
+	EingetragenUm     *string `json:"eingetragen_um"`
 	DauerMinuten      *int    `json:"dauer_minuten"`
 	Art               *string `json:"art"`
 	Notiz             *string `json:"notiz"`
@@ -240,7 +245,9 @@ func (h *Handler) CreateStunde(c *gin.Context) {
 		FahrlehrerID:      c.GetInt64("uid"),
 		FahrschuelerID:    req.FahrschuelerID,
 		GefahrenAm:        gefahren,
+		GefahrenVon:       wert(req.GefahrenVon),
 		EingetragenAm:     eingetragen,
+		EingetragenUm:     wert(req.EingetragenUm),
 		DauerMinuten:      *req.DauerMinuten,
 		Art:               wert(req.Art),
 		Notiz:             wert(req.Notiz),
@@ -267,6 +274,8 @@ func (h *Handler) UpdateStunde(c *gin.Context) {
 		return
 	}
 	in := AendernInput{
+		GefahrenVon:       req.GefahrenVon,
+		EingetragenUm:     req.EingetragenUm,
 		DauerMinuten:      req.DauerMinuten,
 		Art:               req.Art,
 		Notiz:             req.Notiz,

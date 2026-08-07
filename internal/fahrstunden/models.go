@@ -67,6 +67,49 @@ type Fahrschueler struct {
 	CreatedAt    time.Time
 }
 
+// Uhrzeit ist eine Tageszeit im Format HH:MM. Der leere Wert heißt „nicht
+// notiert“ — eine Fahrstunde ohne Uhrzeit bleibt ein gültiger Eintrag.
+type Uhrzeit string
+
+// Gesetzt sagt, ob eine Uhrzeit notiert ist.
+func (u Uhrzeit) Gesetzt() bool { return u != "" }
+
+// Minuten liefert die Minuten seit Mitternacht, -1 bei leer oder unbrauchbar.
+func (u Uhrzeit) Minuten() int {
+	if len(u) != 5 || u[2] != ':' {
+		return -1
+	}
+	h, err := strconv.Atoi(string(u[0:2]))
+	if err != nil || h < 0 || h > 23 {
+		return -1
+	}
+	m, err := strconv.Atoi(string(u[3:5]))
+	if err != nil || m < 0 || m > 59 {
+		return -1
+	}
+	return h*60 + m
+}
+
+// Gueltig prüft das Format HH:MM.
+func (u Uhrzeit) Gueltig() bool { return u.Minuten() >= 0 }
+
+// Plus rechnet Minuten dazu und liefert die Uhrzeit am selben Tag. Läuft die
+// Stunde über Mitternacht (Nachtfahrt), wird umgebrochen.
+func (u Uhrzeit) Plus(minuten int) Uhrzeit {
+	start := u.Minuten()
+	if start < 0 {
+		return ""
+	}
+	ende := ((start+minuten)%1440 + 1440) % 1440
+	return UhrzeitAusMinuten(ende)
+}
+
+// UhrzeitAusMinuten baut eine Uhrzeit aus Minuten seit Mitternacht.
+func UhrzeitAusMinuten(m int) Uhrzeit {
+	m = ((m % 1440) + 1440) % 1440
+	return Uhrzeit(fmt.Sprintf("%02d:%02d", m/60, m%60))
+}
+
 // Fahrstunde entspricht der Tabelle fahrstunden. SchuelerName kommt aus dem
 // JOIN und ist nur beim Lesen gefüllt (Listen, PDF).
 type Fahrstunde struct {
@@ -76,8 +119,13 @@ type Fahrstunde struct {
 	SchuelerName   string
 	SchuelerKlasse string
 
-	GefahrenAm    time.Time
+	GefahrenAm time.Time
+	// GefahrenVon ist der Beginn der Fahrstunde; das Ende ergibt sich aus der
+	// Dauer und wird deshalb nicht gespeichert.
+	GefahrenVon   Uhrzeit
 	EingetragenAm time.Time
+	// EingetragenUm ist die Uhrzeit, unter der die Stunde im FS Manager steht.
+	EingetragenUm Uhrzeit
 	DauerMinuten  int
 	Art           string
 	Notiz         string
@@ -104,6 +152,23 @@ func (f *Fahrstunde) Unterschrieben() bool {
 	return f.UnterschriftPNG != nil && *f.UnterschriftPNG != ""
 }
 
+// GefahrenBis ist das aus Beginn und Dauer errechnete Ende der Fahrstunde.
+// Leer, wenn keine Anfangszeit notiert ist.
+func (f *Fahrstunde) GefahrenBis() Uhrzeit {
+	return f.GefahrenVon.Plus(f.DauerMinuten)
+}
+
+// Fahrzeitraum ist die Fahrzeit als „14:00–15:30“ — leer ohne Anfangszeit.
+func (f *Fahrstunde) Fahrzeitraum() string {
+	if !f.GefahrenVon.Gesetzt() {
+		return ""
+	}
+	if bis := f.GefahrenBis(); bis != "" {
+		return string(f.GefahrenVon) + "–" + string(bis)
+	}
+	return string(f.GefahrenVon)
+}
+
 // SchuelerParams sind die Felder zum Anlegen einer Fahrschülerin/eines Fahrschülers.
 type SchuelerParams struct {
 	FahrlehrerID int64
@@ -125,7 +190,9 @@ type StundeParams struct {
 	FahrlehrerID      int64
 	FahrschuelerID    int64
 	GefahrenAm        time.Time
+	GefahrenVon       Uhrzeit
 	EingetragenAm     time.Time
+	EingetragenUm     Uhrzeit
 	DauerMinuten      int
 	Art               string
 	Notiz             string
@@ -137,7 +204,9 @@ type StundeParams struct {
 // StundeUpdate sind die änderbaren Felder einer Fahrstunde. nil = unverändert.
 type StundeUpdate struct {
 	GefahrenAm    *time.Time
+	GefahrenVon   *Uhrzeit
 	EingetragenAm *time.Time
+	EingetragenUm *Uhrzeit
 	DauerMinuten  *int
 	Art           *string
 	Notiz         *string

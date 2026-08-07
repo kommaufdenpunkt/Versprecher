@@ -85,13 +85,15 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
-// normalisierePfad macht aus „gino“, „/gino/“ usw. immer „/gino“.
+// normalisierePfad macht aus „ginos“, „/ginos/“ usw. immer „/ginos“.
+// „/“ ist ausdrücklich erlaubt: unter einer eigenen Domain (z. B. ginos.de)
+// soll die Oberfläche direkt auf der Wurzel liegen.
 func normalisierePfad(p string) string {
-	p = "/" + strings.Trim(strings.TrimSpace(p), "/")
-	if p == "/" {
-		return "/fahrstunden" // die Wurzel bleibt frei für andere Routen
+	p = strings.TrimSpace(p)
+	if p == "" {
+		return "/fahrstunden"
 	}
-	return p
+	return "/" + strings.Trim(p, "/")
 }
 
 func (c *Config) Addr() string { return ":" + c.Port }
