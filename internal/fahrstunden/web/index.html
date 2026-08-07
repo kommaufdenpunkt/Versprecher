@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1c2536">
+<title>Fahrstunden-Nachweis</title>
+<!-- Symbol eingebettet: spart eine Anfrage und funktioniert unter jedem Basispfad. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f6feb'/%3E%3Cpath d='M8 21h16M8 21l2.6-8.4A2 2 0 0 1 12.5 11h7a2 2 0 0 1 1.9 1.6L24 21M11 24.5v-2m10 2v-2' stroke='%23fff' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f4f5f7; --flaeche:#ffffff; --flaeche-2:#fafbfc; --rand:#dfe3e8;
+  --text:#1b2027; --text-leise:#697586; --akzent:#1f6feb; --akzent-text:#ffffff;
+  --gut:#177245; --gut-bg:#e8f5ec; --warn:#8a5a00; --warn-bg:#fdf4e3;
+  --fehler:#a3271f; --fehler-bg:#fceceb; --radius:12px;
+  --schatten:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#12161d; --flaeche:#1a1f28; --flaeche-2:#20262f; --rand:#2d3540;
+    --text:#e7ebf0; --text-leise:#9aa5b4; --akzent:#4a90ff; --akzent-text:#0b0f14;
+    --gut:#5cd08a; --gut-bg:#14301f; --warn:#e8b45c; --warn-bg:#332608;
+    --fehler:#ff8a80; --fehler-bg:#3a1614;
+    --schatten:0 1px 2px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg); color:var(--text);
+  -webkit-text-size-adjust:100%;
+}
+.huelle{max-width:820px;margin:0 auto;padding:0 14px 80px}
+header{
+  position:sticky;top:0;z-index:20;background:var(--bg);
+  padding:14px 0 8px;border-bottom:1px solid var(--rand);
+  padding-top:max(14px,env(safe-area-inset-top));
+}
+.kopf{display:flex;align-items:center;gap:10px}
+.marke{font-weight:700;font-size:18px;letter-spacing:-.01em;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.marke small{display:block;font-weight:400;font-size:12px;color:var(--text-leise)}
+nav{display:flex;gap:4px;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+nav button{
+  flex:0 0 auto;border:1px solid transparent;background:none;color:var(--text-leise);
+  padding:8px 14px;border-radius:99px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;
+}
+nav button[aria-selected="true"]{background:var(--flaeche);color:var(--text);border-color:var(--rand);box-shadow:var(--schatten)}
+.karte{background:var(--flaeche);border:1px solid var(--rand);border-radius:var(--radius);
+  padding:16px;margin-top:14px;box-shadow:var(--schatten)}
+.karte h2{margin:0 0 4px;font-size:16px;letter-spacing:-.01em}
+.karte p.hinweis{margin:0 0 14px;font-size:13px;color:var(--text-leise)}
+label{display:block;font-size:13px;font-weight:600;color:var(--text-leise);margin:14px 0 6px}
+label:first-of-type{margin-top:0}
+input,select,textarea{
+  width:100%;padding:11px 12px;font:inherit;font-size:16px;color:var(--text);
+  background:var(--flaeche-2);border:1px solid var(--rand);border-radius:9px;
+}
+input:focus,select:focus,textarea:focus,button:focus-visible{
+  outline:2px solid var(--akzent);outline-offset:1px
+}
+textarea{min-height:66px;resize:vertical}
+.reihe{display:flex;gap:10px;flex-wrap:wrap}
+.reihe>*{flex:1 1 160px;min-width:0}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.chip{
+  border:1px solid var(--rand);background:var(--flaeche-2);color:var(--text);
+  padding:8px 13px;border-radius:99px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap
+}
+.chip[aria-pressed="true"]{background:var(--akzent);color:var(--akzent-text);border-color:var(--akzent);font-weight:600}
+.chip small{opacity:.75;font-size:12px;margin-left:5px}
+button.haupt{
+  width:100%;margin-top:18px;padding:14px;border:0;border-radius:10px;
+  background:var(--akzent);color:var(--akzent-text);font:inherit;font-weight:700;font-size:16px;cursor:pointer
+}
+button.haupt:disabled{opacity:.55;cursor:default}
+button.leise{
+  border:1px solid var(--rand);background:var(--flaeche-2);color:var(--text);
+  padding:8px 13px;border-radius:8px;font:inherit;font-size:14px;cursor:pointer
+}
+.meldung{padding:11px 13px;border-radius:9px;font-size:14px;margin-top:14px;border:1px solid transparent}
+.meldung.gut{background:var(--gut-bg);color:var(--gut);border-color:currentColor}
+.meldung.warn{background:var(--warn-bg);color:var(--warn);border-color:currentColor}
+.meldung.fehler{background:var(--fehler-bg);color:var(--fehler);border-color:currentColor}
+.meldung[hidden]{display:none}
+/* Tagesbalken: wie voll ist der Eintragetag im FS Manager? */
+.tag-info{margin-top:9px;padding:11px 13px;background:var(--flaeche-2);
+  border:1px solid var(--rand);border-radius:9px;font-size:14px}
+.balken{height:7px;border-radius:99px;background:var(--rand);overflow:hidden;margin-top:8px}
+.balken i{display:block;height:100%;background:var(--gut);transition:width .18s ease}
+.balken i.eng{background:var(--warn)} .balken i.voll{background:var(--fehler)}
+/* Unterschrift */
+.unterschrift-feld{position:relative;margin-top:6px;background:var(--flaeche-2);
+  border:1px dashed var(--rand);border-radius:9px;overflow:hidden}
+.unterschrift-feld canvas{display:block;width:100%;height:150px;touch-action:none;cursor:crosshair}
+.unterschrift-feld .linie{position:absolute;left:22px;right:22px;bottom:34px;border-top:1px solid var(--rand)}
+.unterschrift-feld .platzhalter{position:absolute;left:0;right:0;bottom:12px;text-align:center;
+  font-size:12px;color:var(--text-leise);pointer-events:none}
+.unterschrift-feld.gemalt .platzhalter{display:none}
+/* Listen */
+.eintrag{border:1px solid var(--rand);border-radius:10px;padding:12px;margin-top:10px;background:var(--flaeche-2)}
+.eintrag.verschoben{border-left:3px solid var(--warn)}
+.eintrag .zeile1{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.eintrag .name{font-weight:700}
+.eintrag .datum{font-variant-numeric:tabular-nums}
+.eintrag .meta{font-size:13px;color:var(--text-leise);margin-top:3px}
+.eintrag .notiz{font-size:14px;margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere}
+.eintrag .werkzeuge{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.marker{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;
+  background:var(--rand);color:var(--text-leise);white-space:nowrap}
+.marker.warn{background:var(--warn-bg);color:var(--warn)}
+.marker.gut{background:var(--gut-bg);color:var(--gut)}
+/* Kapazitätsstreifen */
+.streifen{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:7px;margin-top:12px}
+.streifen div{border:1px solid var(--rand);border-radius:8px;padding:7px 4px;text-align:center;
+  font-size:11px;background:var(--flaeche-2);font-variant-numeric:tabular-nums}
+.streifen div b{display:block;font-size:13px}
+.streifen div.frei{border-color:var(--gut);color:var(--gut)}
+.streifen div.eng{border-color:var(--warn);color:var(--warn)}
+.streifen div.voll{border-color:var(--fehler);color:var(--fehler)}
+.streifen div.wochenende{opacity:.6}
+.leer{text-align:center;color:var(--text-leise);font-size:14px;padding:26px 10px}
+.laden{text-align:center;color:var(--text-leise);font-size:14px;padding:18px}
+[hidden]{display:none !important}
+.fuss{margin-top:20px;font-size:12px;color:var(--text-leise);text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="huelle">
+
+  <!-- ================= Anmeldung ================= -->
+  <section id="anmeldung" hidden>
+    <div class="karte" style="margin-top:60px">
+      <h2 id="anmelde-titel">Fahrstunden-Nachweis</h2>
+      <p class="hinweis">Bitte mit den Zugangsdaten anmelden.</p>
+      <form id="anmelde-form">
+        <label for="a-email">E-Mail</label>
+        <input id="a-email" type="email" autocomplete="username" required>
+        <label for="a-pw">Passwort</label>
+        <input id="a-pw" type="password" autocomplete="current-password" required>
+        <button class="haupt" type="submit">Anmelden</button>
+      </form>
+      <div id="a-meldung" class="meldung fehler" hidden></div>
+    </div>
+  </section>
+
+  <!-- ================= Anwendung ================= -->
+  <div id="app" hidden>
+    <header>
+      <div class="kopf">
+        <div class="marke" id="marke">Fahrstunden-Nachweis<small id="marke-sub"></small></div>
+        <button class="leise" id="abmelden" type="button">Abmelden</button>
+      </div>
+      <nav role="tablist">
+        <button role="tab" data-reiter="eintragen" aria-selected="true">Eintragen</button>
+        <button role="tab" data-reiter="stunden" aria-selected="false">Stunden</button>
+        <button role="tab" data-reiter="tage" aria-selected="false">Tage</button>
+        <button role="tab" data-reiter="schueler" aria-selected="false">Fahrschüler</button>
+      </nav>
+    </header>
+
+    <!-- ---------- Eintragen ---------- -->
+    <section id="r-eintragen">
+      <form class="karte" id="stunde-form">
+        <h2>Fahrstunde eintragen</h2>
+        <p class="hinweis">Gefahren am und eingetragen am werden getrennt festgehalten — genau das ist der Nachweis.</p>
+
+        <label for="f-schueler">Fahrschüler:in</label>
+        <select id="f-schueler" required></select>
+
+        <label for="f-gefahren">Gefahren am</label>
+        <input id="f-gefahren" type="date" required>
+        <div class="chips">
+          <button class="chip" type="button" data-tag="0">Heute</button>
+          <button class="chip" type="button" data-tag="-1">Gestern</button>
+          <button class="chip" type="button" data-tag="-2">Vorgestern</button>
+        </div>
+
+        <label for="f-dauer">Dauer in Minuten</label>
+        <input id="f-dauer" type="number" min="1" max="1440" step="1" value="90" required inputmode="numeric">
+        <div class="chips" id="dauer-chips">
+          <button class="chip" type="button" data-dauer="45">45</button>
+          <button class="chip" type="button" data-dauer="90">90</button>
+          <button class="chip" type="button" data-dauer="135">135</button>
+          <button class="chip" type="button" data-dauer="180">180</button>
+        </div>
+
+        <label for="f-art">Art</label>
+        <select id="f-art"></select>
+
+        <label>Eingetragen am (FS&nbsp;Manager)</label>
+        <div class="chips" id="eintrag-modus">
+          <button class="chip" type="button" data-modus="auto" aria-pressed="true">Automatisch</button>
+          <button class="chip" type="button" data-modus="manuell" aria-pressed="false">Selbst wählen</button>
+        </div>
+        <input id="f-eingetragen" type="date" style="margin-top:8px" hidden>
+        <div class="chips" id="vorschlaege"></div>
+        <div class="tag-info" id="tag-info">Wird geladen …</div>
+
+        <label for="f-notiz">Notiz</label>
+        <textarea id="f-notiz" placeholder="z. B. Überlandfahrt B27, Kreisverkehr geübt"></textarea>
+
+        <label>Unterschrift Fahrschüler:in <span style="font-weight:400">(optional)</span></label>
+        <div class="unterschrift-feld" id="us-feld">
+          <canvas id="us-canvas"></canvas>
+          <div class="linie"></div>
+          <div class="platzhalter">Hier mit dem Finger unterschreiben</div>
+        </div>
+        <div class="chips">
+          <button class="chip" type="button" id="us-loeschen">Unterschrift löschen</button>
+        </div>
+
+        <button class="haupt" type="submit" id="speichern">Fahrstunde eintragen</button>
+        <div id="e-meldung" class="meldung" hidden></div>
+      </form>
+    </section>
+
+    <!-- ---------- Stunden ---------- -->
+    <section id="r-stunden" hidden>
+      <div class="karte">
+        <h2>Eingetragene Fahrstunden</h2>
+        <p class="hinweis">Liste filtern und als PDF zum Unterschreiben ausdrucken.</p>
+        <div class="reihe">
+          <div>
+            <label for="l-schueler">Fahrschüler:in</label>
+            <select id="l-schueler"></select>
+          </div>
+          <div>
+            <label for="l-von">Von (gefahren)</label>
+            <input id="l-von" type="date">
+          </div>
+          <div>
+            <label for="l-bis">Bis (gefahren)</label>
+            <input id="l-bis" type="date">
+          </div>
+        </div>
+        <div class="chips">
+          <button class="chip" type="button" id="l-laden">Liste anzeigen</button>
+          <button class="chip" type="button" id="l-pdf">PDF herunterladen</button>
+          <button class="chip" type="button" id="l-zuruecksetzen">Filter zurücksetzen</button>
+        </div>
+        <div id="l-meldung" class="meldung" hidden></div>
+        <div id="l-summe" class="tag-info" hidden></div>
+      </div>
+      <div id="l-liste"></div>
+    </section>
+
+    <!-- ---------- Tage ---------- -->
+    <section id="r-tage" hidden>
+      <div class="karte">
+        <h2>Tagesauslastung</h2>
+        <p class="hinweis" id="tage-hinweis">Verbuchte Zeit je Eintragetag.</p>
+        <div class="chips">
+          <button class="chip" type="button" data-verschieben="-28">◀ früher</button>
+          <button class="chip" type="button" data-verschieben="0">Heute</button>
+          <button class="chip" type="button" data-verschieben="28">später ▶</button>
+        </div>
+        <div class="streifen" id="tage-streifen"></div>
+      </div>
+    </section>
+
+    <!-- ---------- Fahrschüler ---------- -->
+    <section id="r-schueler" hidden>
+      <form class="karte" id="schueler-form">
+        <h2>Fahrschüler:in anlegen</h2>
+        <p class="hinweis">Nur Name und Klasse — mehr braucht der Nachweis nicht.</p>
+        <div class="reihe">
+          <div>
+            <label for="s-name">Name</label>
+            <input id="s-name" required autocomplete="off">
+          </div>
+          <div>
+            <label for="s-klasse">Klasse</label>
+            <input id="s-klasse" placeholder="B" autocomplete="off">
+          </div>
+        </div>
+        <label for="s-notiz">Notiz</label>
+        <input id="s-notiz" autocomplete="off">
+        <button class="haupt" type="submit">Anlegen</button>
+        <div id="s-meldung" class="meldung" hidden></div>
+      </form>
+      <div id="s-liste"></div>
+    </section>
+
+    <p class="fuss" id="fuss"></p>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ Basis */
+
+// Alle Pfade werden aus dem eigenen Ort abgeleitet, damit die Oberfläche auch
+// unter einem anderen Basispfad (oder einer eigenen Domain) läuft.
+const BASIS = location.pathname.replace(/\/+$/, "");
+const SCHLUESSEL = "fahrstunden.token";
+
+let KONFIG = { app_name: "Fahrstunden-Nachweis", api_basis: "/v1/fahrstunden",
+               auth_basis: "/v1/auth", limit_minuten: 495, fahrschule: "" };
+let token = localStorage.getItem(SCHLUESSEL) || "";
+let schuelerListe = [];
+let kapazitaet = new Map();   // "JJJJ-MM-TT" -> {frei_minuten, belegt_minuten, ...}
+let eintragModus = "auto";
+let tageOffset = -7;
+
+const $ = (id) => document.getElementById(id);
+
+const zweistellig = (n) => String(n).padStart(2, "0");
+const alsISO = (d) => `${d.getFullYear()}-${zweistellig(d.getMonth() + 1)}-${zweistellig(d.getDate())}`;
+const heute = () => alsISO(new Date());
+function verschiebeISO(iso, tage) {
+  const [j, m, t] = iso.split("-").map(Number);
+  const d = new Date(j, m - 1, t);
+  d.setDate(d.getDate() + tage);
+  return alsISO(d);
+}
+function deDatum(iso) {
+  if (!iso) return "—";
+  const [j, m, t] = iso.split("-");
+  return `${t}.${m}.${j}`;
+}
+function wochentag(iso) {
+  const [j, m, t] = iso.split("-").map(Number);
+  return ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"][new Date(j, m - 1, t).getDay()];
+}
+function istWochenende(iso) {
+  const w = wochentag(iso);
+  return w === "Sa" || w === "So";
+}
+function alsStunden(min) {
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? `${h}:${zweistellig(m)} h` : `${m} Min`;
+}
+function abstandText(tage) {
+  if (tage === 0) return "am Fahrtag";
+  const betrag = Math.abs(tage);
+  return `${betrag} Tag${betrag === 1 ? "" : "e"} ${tage < 0 ? "davor" : "danach"}`;
+}
+
+function zeige(el, text, art) {
+  el.textContent = text;
+  el.className = "meldung " + (art || "");
+  el.hidden = !text;
+}
+
+/* ---------------------------------------------------------------- Zugriff */
+
+async function api(pfad, optionen = {}) {
+  const kopf = Object.assign({}, optionen.headers);
+  if (token) kopf["Authorization"] = "Bearer " + token;
+  if (optionen.body) kopf["Content-Type"] = "application/json";
+
+  const antwort = await fetch(KONFIG.api_basis + pfad, Object.assign({}, optionen, { headers: kopf }));
+  if (antwort.status === 401) { abmelden(); throw new Error("Bitte neu anmelden."); }
+  if (antwort.status === 204) return null;
+
+  const typ = antwort.headers.get("Content-Type") || "";
+  if (typ.includes("application/pdf")) {
+    if (!antwort.ok) throw new Error("PDF konnte nicht erstellt werden.");
+    return antwort.blob();
+  }
+  const daten = await antwort.json().catch(() => ({}));
+  if (!antwort.ok) {
+    const fehler = new Error(daten.error || "Es hat nicht geklappt.");
+    fehler.daten = daten;
+    throw fehler;
+  }
+  return daten;
+}
+
+/* ------------------------------------------------------------- Anmeldung */
+
+function abmelden() {
+  token = "";
+  localStorage.removeItem(SCHLUESSEL);
+  $("app").hidden = true;
+  $("anmeldung").hidden = false;
+}
+
+$("anmelde-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const meldung = $("a-meldung");
+  zeige(meldung, "");
+  try {
+    const antwort = await fetch(KONFIG.auth_basis + "/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: $("a-email").value, password: $("a-pw").value }),
+    });
+    const daten = await antwort.json().catch(() => ({}));
+    if (!antwort.ok || !daten.token) throw new Error(daten.error || "Anmeldung fehlgeschlagen.");
+    token = daten.token;
+    localStorage.setItem(SCHLUESSEL, token);
+    $("a-pw").value = "";
+    await starten();
+  } catch (fehler) {
+    zeige(meldung, fehler.message, "fehler");
+  }
+});
+
+$("abmelden").addEventListener("click", abmelden);
+
+/* ------------------------------------------------------------ Navigation */
+
+document.querySelectorAll("nav button").forEach((knopf) => {
+  knopf.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach((b) =>
+      b.setAttribute("aria-selected", String(b === knopf)));
+    ["eintragen", "stunden", "tage", "schueler"].forEach((name) => {
+      $("r-" + name).hidden = name !== knopf.dataset.reiter;
+    });
+    if (knopf.dataset.reiter === "tage") ladeTage();
+    if (knopf.dataset.reiter === "stunden") ladeStunden();
+  });
+});
+
+/* -------------------------------------------------------- Unterschrift */
+
+const leinwand = $("us-canvas");
+const stift = leinwand.getContext("2d");
+let malt = false, gemalt = false;
+
+function leinwandGroesse() {
+  const dichte = window.devicePixelRatio || 1;
+  const kasten = leinwand.getBoundingClientRect();
+  if (!kasten.width) return;
+  // Vorhandene Zeichnung beim Größenwechsel erhalten.
+  const alt = gemalt ? leinwand.toDataURL("image/png") : null;
+  leinwand.width = Math.round(kasten.width * dichte);
+  leinwand.height = Math.round(kasten.height * dichte);
+  stift.setTransform(dichte, 0, 0, dichte, 0, 0);
+  stift.lineWidth = 2.4;
+  stift.lineCap = "round";
+  stift.lineJoin = "round";
+  stift.strokeStyle = "#101418";
+  if (alt) {
+    const bild = new Image();
+    bild.onload = () => stift.drawImage(bild, 0, 0, kasten.width, kasten.height);
+    bild.src = alt;
+  }
+}
+
+function punkt(ereignis) {
+  const k = leinwand.getBoundingClientRect();
+  return { x: ereignis.clientX - k.left, y: ereignis.clientY - k.top };
+}
+
+leinwand.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  malt = true;
+  leinwand.setPointerCapture(e.pointerId);
+  const p = punkt(e);
+  stift.beginPath();
+  stift.moveTo(p.x, p.y);
+  // Ein einzelner Tipp soll auch einen Punkt hinterlassen.
+  stift.lineTo(p.x + 0.1, p.y);
+  stift.stroke();
+  gemalt = true;
+  $("us-feld").classList.add("gemalt");
+});
+leinwand.addEventListener("pointermove", (e) => {
+  if (!malt) return;
+  e.preventDefault();
+  const p = punkt(e);
+  stift.lineTo(p.x, p.y);
+  stift.stroke();
+});
+["pointerup", "pointercancel", "pointerleave"].forEach((typ) =>
+  leinwand.addEventListener(typ, () => { malt = false; }));
+
+function unterschriftLeeren() {
+  stift.clearRect(0, 0, leinwand.width, leinwand.height);
+  gemalt = false;
+  $("us-feld").classList.remove("gemalt");
+}
+$("us-loeschen").addEventListener("click", unterschriftLeeren);
+window.addEventListener("resize", leinwandGroesse);
+
+function unterschriftDatenURL() {
+  return gemalt ? leinwand.toDataURL("image/png") : "";
+}
+
+/* ------------------------------------------------- Eintragen: Kapazität */
+
+// Kapazität rund um den Fahrtag holen. Das deckt beides ab: die Anzeige „wie
+// voll ist der Tag“ und die Vorschläge, wohin die Stunde sonst passt.
+// Verbindlich prüft der Server beim Speichern.
+const FENSTER = 14;
+
+async function ladeKapazitaetUm(iso) {
+  const von = verschiebeISO(iso, -FENSTER), bis = verschiebeISO(iso, FENSTER);
+  const daten = await api(`/kapazitaet?von=${von}&bis=${bis}`);
+  kapazitaet = new Map(daten.tage.map((t) => [t.datum, t]));
+  KONFIG.limit_minuten = daten.limit_minuten;
+}
+
+function freieMinuten(iso) {
+  const tag = kapazitaet.get(iso);
+  return tag ? tag.frei_minuten : KONFIG.limit_minuten;
+}
+
+// Passende Eintragetage: nach Nähe zum Fahrtag, bei Gleichstand der frühere
+// zuerst — verschoben wird in der Praxis eher nach vorn.
+function passendeTage(gefahrenAm, dauer) {
+  const treffer = [];
+  for (let d = -FENSTER; d <= FENSTER; d++) {
+    const iso = verschiebeISO(gefahrenAm, d);
+    if (freieMinuten(iso) >= dauer) treffer.push({ iso, abstand: d, frei: freieMinuten(iso) });
+  }
+  treffer.sort((a, b) => Math.abs(a.abstand) - Math.abs(b.abstand) || a.abstand - b.abstand);
+  return treffer;
+}
+
+function gewaehlterEintragetag() {
+  const gefahren = $("f-gefahren").value;
+  const dauer = Number($("f-dauer").value) || 0;
+  if (!gefahren) return "";
+  if (eintragModus === "manuell") return $("f-eingetragen").value || gefahren;
+  const passend = passendeTage(gefahren, dauer);
+  return passend.length ? passend[0].iso : gefahren;
+}
+
+function zeichneKapazitaet() {
+  const gefahren = $("f-gefahren").value;
+  const dauer = Number($("f-dauer").value) || 0;
+  const info = $("tag-info");
+  const chips = $("vorschlaege");
+  chips.innerHTML = "";
+  if (!gefahren) { info.textContent = "Bitte zuerst den Fahrtag wählen."; return; }
+
+  const ziel = gewaehlterEintragetag();
+  const frei = freieMinuten(ziel);
+  const limit = KONFIG.limit_minuten;
+  const belegt = limit - frei;
+  const passtNoch = frei >= dauer;
+  const abstand = Math.round((new Date(ziel) - new Date(gefahren)) / 86400000);
+
+  const anteil = Math.min(100, Math.round(((belegt + (passtNoch ? dauer : 0)) / limit) * 100));
+  const stufe = anteil >= 100 ? "voll" : anteil >= 85 ? "eng" : "";
+
+  info.innerHTML = `
+    <div><strong>${deDatum(ziel)}</strong> (${wochentag(ziel)}) — ${abstandText(abstand)}</div>
+    <div style="color:var(--text-leise);margin-top:2px">
+      ${belegt} von ${limit} Min belegt · <strong style="color:${passtNoch ? "var(--gut)" : "var(--fehler)"}">
+      ${passtNoch ? `${frei} Min frei` : `nur ${frei} Min frei — ${dauer} Min passen nicht`}</strong>
+    </div>
+    <div class="balken"><i class="${stufe}" style="width:${anteil}%"></i></div>`;
+
+  // Alternativen nur zeigen, wenn es etwas zu entscheiden gibt.
+  if (eintragModus === "auto") {
+    const passend = passendeTage(gefahren, dauer).slice(0, 5);
+    passend.forEach((p) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.setAttribute("aria-pressed", String(p.iso === ziel));
+      chip.innerHTML = `${deDatum(p.iso)} <small>${p.frei} frei</small>`;
+      chip.addEventListener("click", () => {
+        eintragModus = "manuell";
+        setzeModusChips();
+        $("f-eingetragen").value = p.iso;
+        $("f-eingetragen").hidden = false;
+        zeichneKapazitaet();
+      });
+      chips.appendChild(chip);
+    });
+    if (!passend.length) {
+      chips.innerHTML = `<span style="font-size:13px;color:var(--fehler)">
+        Im Fenster von ±${FENSTER} Tagen ist kein Tag mit ${dauer} freien Minuten.</span>`;
+    }
+  }
+}
+
+function setzeModusChips() {
+  document.querySelectorAll("#eintrag-modus .chip").forEach((c) =>
+    c.setAttribute("aria-pressed", String(c.dataset.modus === eintragModus)));
+  $("f-eingetragen").hidden = eintragModus !== "manuell";
+}
+
+document.querySelectorAll("#eintrag-modus .chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    eintragModus = chip.dataset.modus;
+    if (eintragModus === "manuell" && !$("f-eingetragen").value) {
+      $("f-eingetragen").value = gewaehlterEintragetag();
+    }
+    setzeModusChips();
+    zeichneKapazitaet();
+  });
+});
+
+document.querySelectorAll("[data-tag]").forEach((chip) => {
+  chip.addEventListener("click", async () => {
+    $("f-gefahren").value = verschiebeISO(heute(), Number(chip.dataset.tag));
+    await gefahrenTagGeaendert();
+  });
+});
+
+document.querySelectorAll("[data-dauer]").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    $("f-dauer").value = chip.dataset.dauer;
+    markiereDauerChips();
+    zeichneKapazitaet();
+  });
+});
+
+function markiereDauerChips() {
+  const wert = $("f-dauer").value;
+  document.querySelectorAll("[data-dauer]").forEach((c) =>
+    c.setAttribute("aria-pressed", String(c.dataset.dauer === wert)));
+}
+
+async function gefahrenTagGeaendert() {
+  const iso = $("f-gefahren").value;
+  if (!iso) return;
+  $("tag-info").textContent = "Wird geladen …";
+  try {
+    await ladeKapazitaetUm(iso);
+  } catch (fehler) {
+    zeige($("e-meldung"), fehler.message, "fehler");
+  }
+  if (eintragModus === "manuell" && !$("f-eingetragen").value) $("f-eingetragen").value = iso;
+  zeichneKapazitaet();
+}
+
+$("f-gefahren").addEventListener("change", gefahrenTagGeaendert);
+$("f-eingetragen").addEventListener("change", zeichneKapazitaet);
+$("f-dauer").addEventListener("input", () => { markiereDauerChips(); zeichneKapazitaet(); });
+
+/* ------------------------------------------------- Eintragen: Speichern */
+
+$("stunde-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const meldung = $("e-meldung");
+  const knopf = $("speichern");
+  zeige(meldung, "");
+  knopf.disabled = true;
+
+  const koerper = {
+    fahrschueler_id: Number($("f-schueler").value),
+    gefahren_am: $("f-gefahren").value,
+    dauer_minuten: Number($("f-dauer").value),
+    art: $("f-art").value,
+    notiz: $("f-notiz").value,
+    unterschrift: unterschriftDatenURL(),
+  };
+  // Ohne eingetragen_am sucht der Server selbst den nächsten freien Tag.
+  if (eintragModus === "manuell" && $("f-eingetragen").value) {
+    koerper.eingetragen_am = $("f-eingetragen").value;
+  }
+
+  try {
+    const daten = await api("/stunden", { method: "POST", body: JSON.stringify(koerper) });
+    const s = daten.stunde;
+    const verschoben = s.abweichung_tage !== 0
+      ? ` — eingetragen am ${deDatum(s.eingetragen_am)} (${abstandText(s.abweichung_tage)})`
+      : " — am selben Tag eingetragen";
+    zeige(meldung, `Gespeichert: ${s.schueler_name}, gefahren am ${deDatum(s.gefahren_am)}${verschoben}.`, "gut");
+
+    $("f-notiz").value = "";
+    unterschriftLeeren();
+    await gefahrenTagGeaendert();
+  } catch (fehler) {
+    // Beim Tageslimit den konkreten Ausweg nennen statt nur „geht nicht“.
+    const grenze = fehler.daten && fehler.daten.tageslimit;
+    if (grenze) {
+      const passend = passendeTage($("f-gefahren").value, grenze.wunsch_minuten)[0];
+      const tipp = passend ? ` Nächster passender Tag: ${deDatum(passend.iso)} (${passend.frei} Min frei).` : "";
+      zeige(meldung, `Am ${deDatum(grenze.datum)} sind nur noch ${grenze.frei_minuten} von ` +
+        `${grenze.limit_minuten} Min frei, gebraucht werden ${grenze.wunsch_minuten}.${tipp}`, "warn");
+      await gefahrenTagGeaendert();
+    } else {
+      zeige(meldung, fehler.message, "fehler");
+    }
+  } finally {
+    knopf.disabled = false;
+  }
+});
+
+/* -------------------------------------------------------------- Stunden */
+
+function stundeKarte(s) {
+  const karte = document.createElement("div");
+  karte.className = "eintrag" + (s.abweichung_tage !== 0 ? " verschoben" : "");
+
+  const marker = [];
+  if (s.abweichung_tage !== 0) {
+    marker.push(`<span class="marker warn">${s.abweichung_tage > 0 ? "+" : ""}${s.abweichung_tage} Tage</span>`);
+  }
+  marker.push(s.unterschrieben
+    ? '<span class="marker gut">unterschrieben</span>'
+    : '<span class="marker">ohne Unterschrift</span>');
+  if (s.limit_uebersteuert) marker.push('<span class="marker warn">über Limit</span>');
+
+  karte.innerHTML = `
+    <div class="zeile1">
+      <span class="name">${escapeHTML(s.schueler_name)}</span>
+      <span class="datum">${deDatum(s.gefahren_am)}</span>
+      ${marker.join(" ")}
+    </div>
+    <div class="meta">
+      gefahren am <strong>${deDatum(s.gefahren_am)}</strong> ·
+      eingetragen am <strong>${deDatum(s.eingetragen_am)}</strong> ·
+      ${s.dauer_minuten} Min · ${escapeHTML(s.art_label)}
+    </div>
+    ${s.notiz ? `<div class="notiz">${escapeHTML(s.notiz)}</div>` : ""}
+    <div class="werkzeuge">
+      <button class="chip" type="button" data-aktion="unterschrift">Unterschrift übernehmen</button>
+      <button class="chip" type="button" data-aktion="loeschen">Löschen</button>
+    </div>`;
+
+  karte.querySelector('[data-aktion="unterschrift"]').addEventListener("click", async () => {
+    const bild = unterschriftDatenURL();
+    if (!bild) {
+      zeige($("l-meldung"), "Bitte zuerst im Reiter „Eintragen“ unterschreiben — die Unterschrift wird dann hier übernommen.", "warn");
+      return;
+    }
+    try {
+      await api(`/stunden/${s.id}/unterschrift`, { method: "PUT", body: JSON.stringify({ unterschrift: bild }) });
+      zeige($("l-meldung"), "Unterschrift gespeichert.", "gut");
+      ladeStunden();
+    } catch (fehler) { zeige($("l-meldung"), fehler.message, "fehler"); }
+  });
+
+  karte.querySelector('[data-aktion="loeschen"]').addEventListener("click", async () => {
+    if (!confirm(`Fahrstunde vom ${deDatum(s.gefahren_am)} wirklich löschen?`)) return;
+    try {
+      await api(`/stunden/${s.id}`, { method: "DELETE" });
+      ladeStunden();
+    } catch (fehler) { zeige($("l-meldung"), fehler.message, "fehler"); }
+  });
+
+  return karte;
+}
+
+function escapeHTML(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (z) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
+}
+
+function listenFilter() {
+  const teile = [];
+  if ($("l-schueler").value) teile.push("fahrschueler_id=" + encodeURIComponent($("l-schueler").value));
+  if ($("l-von").value) teile.push("von=" + $("l-von").value);
+  if ($("l-bis").value) teile.push("bis=" + $("l-bis").value);
+  return teile.length ? "?" + teile.join("&") : "";
+}
+
+async function ladeStunden() {
+  const liste = $("l-liste");
+  liste.innerHTML = '<div class="laden">Wird geladen …</div>';
+  zeige($("l-meldung"), "");
+  try {
+    const daten = await api("/stunden" + listenFilter());
+    liste.innerHTML = "";
+    if (!daten.stunden.length) {
+      liste.innerHTML = '<div class="karte"><div class="leer">Noch keine Fahrstunden für diese Auswahl.</div></div>';
+      $("l-summe").hidden = true;
+      return;
+    }
+    daten.stunden.forEach((s) => liste.appendChild(stundeKarte(s)));
+    const su = daten.summe;
+    $("l-summe").hidden = false;
+    $("l-summe").innerHTML =
+      `<strong>${su.anzahl} Fahrstunden · ${su.minuten} Min (${alsStunden(su.minuten)})</strong><br>
+       <span style="color:var(--text-leise)">${su.unterschrieben} unterschrieben ·
+       ${su.verschoben} an einem anderen Tag eingetragen</span>`;
+  } catch (fehler) {
+    liste.innerHTML = "";
+    zeige($("l-meldung"), fehler.message, "fehler");
+  }
+}
+
+$("l-laden").addEventListener("click", ladeStunden);
+["l-schueler", "l-von", "l-bis"].forEach((id) => $(id).addEventListener("change", ladeStunden));
+$("l-zuruecksetzen").addEventListener("click", () => {
+  $("l-schueler").value = ""; $("l-von").value = ""; $("l-bis").value = "";
+  ladeStunden();
+});
+
+$("l-pdf").addEventListener("click", async () => {
+  const id = $("l-schueler").value;
+  if (!id) { zeige($("l-meldung"), "Bitte zuerst eine Fahrschülerin oder einen Fahrschüler auswählen.", "warn"); return; }
+  zeige($("l-meldung"), "PDF wird erstellt …", "");
+  const teile = [];
+  if ($("l-von").value) teile.push("von=" + $("l-von").value);
+  if ($("l-bis").value) teile.push("bis=" + $("l-bis").value);
+  try {
+    const blob = await api(`/schueler/${id}/nachweis.pdf` + (teile.length ? "?" + teile.join("&") : ""));
+    const name = (schuelerListe.find((s) => String(s.id) === String(id)) || {}).name || "Nachweis";
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Fahrstunden-${name.replace(/[^\wÄÖÜäöüß-]+/g, "-")}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    zeige($("l-meldung"), "PDF wurde heruntergeladen.", "gut");
+  } catch (fehler) {
+    zeige($("l-meldung"), fehler.message, "fehler");
+  }
+});
+
+/* ----------------------------------------------------------------- Tage */
+
+async function ladeTage() {
+  const streifen = $("tage-streifen");
+  streifen.innerHTML = '<div class="laden">Wird geladen …</div>';
+  const von = verschiebeISO(heute(), tageOffset);
+  const bis = verschiebeISO(von, 27);
+  try {
+    const daten = await api(`/kapazitaet?von=${von}&bis=${bis}`);
+    $("tage-hinweis").textContent =
+      `Verbuchte Zeit je Eintragetag — ${daten.limit_minuten} Minuten sind pro Tag möglich.`;
+    streifen.innerHTML = "";
+    daten.tage.forEach((t) => {
+      const anteil = t.belegt_minuten / t.limit_minuten;
+      const stufe = t.belegt_minuten >= t.limit_minuten ? "voll" : anteil >= 0.85 ? "eng" : t.belegt_minuten > 0 ? "frei" : "";
+      const kasten = document.createElement("div");
+      kasten.className = stufe + (istWochenende(t.datum) ? " wochenende" : "");
+      kasten.title = `${deDatum(t.datum)}: ${t.belegt_minuten} von ${t.limit_minuten} Min belegt`;
+      kasten.innerHTML = `${wochentag(t.datum)} ${t.datum.slice(8)}.${t.datum.slice(5, 7)}
+        <b>${t.belegt_minuten}</b>${t.frei_minuten} frei`;
+      streifen.appendChild(kasten);
+    });
+  } catch (fehler) {
+    streifen.innerHTML = `<div class="laden">${escapeHTML(fehler.message)}</div>`;
+  }
+}
+
+document.querySelectorAll("[data-verschieben]").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    const wert = Number(chip.dataset.verschieben);
+    tageOffset = wert === 0 ? -7 : tageOffset + wert;
+    ladeTage();
+  });
+});
+
+/* ----------------------------------------------------------- Fahrschüler */
+
+async function ladeSchueler() {
+  const daten = await api("/schueler");
+  schuelerListe = daten.schueler;
+
+  const optionen = schuelerListe
+    .filter((s) => s.aktiv)
+    .map((s) => `<option value="${s.id}">${escapeHTML(s.name)}${s.klasse ? " · " + escapeHTML(s.klasse) : ""}</option>`)
+    .join("");
+  $("f-schueler").innerHTML = optionen || '<option value="">— noch niemand angelegt —</option>';
+  $("l-schueler").innerHTML = '<option value="">Alle</option>' + optionen;
+
+  const liste = $("s-liste");
+  liste.innerHTML = "";
+  if (!schuelerListe.length) {
+    liste.innerHTML = '<div class="karte"><div class="leer">Noch niemand angelegt.</div></div>';
+    return;
+  }
+  schuelerListe.forEach((s) => {
+    const karte = document.createElement("div");
+    karte.className = "eintrag";
+    karte.innerHTML = `
+      <div class="zeile1">
+        <span class="name">${escapeHTML(s.name)}</span>
+        ${s.klasse ? `<span class="marker">Klasse ${escapeHTML(s.klasse)}</span>` : ""}
+        ${s.aktiv ? "" : '<span class="marker warn">nicht aktiv</span>'}
+      </div>
+      ${s.notiz ? `<div class="notiz">${escapeHTML(s.notiz)}</div>` : ""}
+      <div class="werkzeuge">
+        <button class="chip" type="button">${s.aktiv ? "Auf inaktiv setzen" : "Wieder aktiv setzen"}</button>
+      </div>`;
+    karte.querySelector("button").addEventListener("click", async () => {
+      try {
+        await api(`/schueler/${s.id}`, { method: "PATCH", body: JSON.stringify({ aktiv: !s.aktiv }) });
+        await ladeSchueler();
+      } catch (fehler) { zeige($("s-meldung"), fehler.message, "fehler"); }
+    });
+    liste.appendChild(karte);
+  });
+}
+
+$("schueler-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const meldung = $("s-meldung");
+  zeige(meldung, "");
+  try {
+    await api("/schueler", {
+      method: "POST",
+      body: JSON.stringify({
+        name: $("s-name").value,
+        klasse: $("s-klasse").value,
+        notiz: $("s-notiz").value,
+      }),
+    });
+    $("s-name").value = ""; $("s-klasse").value = ""; $("s-notiz").value = "";
+    await ladeSchueler();
+    zeige(meldung, "Angelegt.", "gut");
+  } catch (fehler) {
+    zeige(meldung, fehler.message, "fehler");
+  }
+});
+
+/* ---------------------------------------------------------------- Start */
+
+async function ladeKonfig() {
+  try {
+    const antwort = await fetch(BASIS + "/konfig.json");
+    if (antwort.ok) KONFIG = Object.assign(KONFIG, await antwort.json());
+  } catch (_) { /* Standardwerte reichen */ }
+
+  document.title = KONFIG.app_name;
+  $("anmelde-titel").textContent = KONFIG.app_name;
+  $("marke").firstChild.textContent = KONFIG.app_name;
+  $("marke-sub").textContent = KONFIG.fahrschule || "";
+}
+
+async function starten() {
+  $("anmeldung").hidden = true;
+  $("app").hidden = false;
+  leinwandGroesse();
+
+  try {
+    const stamm = await api("/stammdaten");
+    KONFIG.limit_minuten = stamm.limit_minuten;
+    $("f-art").innerHTML = stamm.arten
+      .map((a) => `<option value="${a.wert}"${a.wert === "uebungsstunde" ? " selected" : ""}>${escapeHTML(a.label)}</option>`)
+      .join("");
+    $("fuss").innerHTML =
+      `Pro Eintragetag sind ${stamm.limit_minuten} Minuten möglich.<br>` +
+      `Der Nachweis hält „gefahren am“ und „eingetragen am“ getrennt fest.`;
+
+    await ladeSchueler();
+    $("f-gefahren").value = heute();
+    markiereDauerChips();
+    setzeModusChips();
+    await gefahrenTagGeaendert();
+  } catch (fehler) {
+    zeige($("e-meldung"), fehler.message, "fehler");
+  }
+}
+
+(async function () {
+  await ladeKonfig();
+  if (token) {
+    await starten();
+  } else {
+    $("anmeldung").hidden = false;
+  }
+})();
+</script>
+</body>
+</html>

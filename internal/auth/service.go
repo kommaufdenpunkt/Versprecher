@@ -233,3 +233,13 @@ func (s *Service) VerifyEmail(ctx context.Context, rawToken string) error {
 func (s *Service) Me(ctx context.Context, uid int64) (*User, error) {
 	return s.repo.GetUserByID(ctx, uid)
 }
+
+// AnzeigeName liefert nur den Namen zur User-ID. Andere Pakete (z. B. der
+// Fahrstunden-Nachweis im PDF) brauchen den Namen, aber nicht das ganze Profil.
+func (s *Service) AnzeigeName(ctx context.Context, uid int64) (string, error) {
+	u, err := s.repo.GetUserByID(ctx, uid)
+	if err != nil {
+		return "", err
+	}
+	return u.DisplayName, nil
+}

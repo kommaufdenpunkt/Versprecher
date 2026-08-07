@@ -2,6 +2,31 @@
 
 Alle Zeiten in UTC. Neueste Einträge oben.
 
+## 2026-08-07
+
+- **Fahrstunden-Nachweis** (Nebenbuch zum FS Manager) hinzugefügt: Paket
+  `internal/fahrstunden`, Migration `0007_fahrstunden` (`fahrschueler`,
+  `fahrstunden`). Hält **„gefahren am“ und „eingetragen am“ getrennt** fest,
+  dazu Art, Notiz und die Unterschrift der Fahrschüler:innen.
+  - **Tageslimit** (Standard 495 Min) gilt auf `eingetragen_am`. Passt eine
+    Stunde nicht, kommt **409** mit den konkreten Zahlen statt stillem
+    Überbuchen; bewusstes Überschreiten nur **mit Begründung** (sonst 400).
+  - **Automatische Wahl des Eintragetages**, wenn `eingetragen_am` fehlt:
+    nächstgelegener Tag mit genug freier Zeit, bei Gleichstand der frühere.
+  - Prüfung und Insert in **einer Transaktion** mit Vorschlagssperre
+    (`pg_advisory_xact_lock`) je (Fahrlehrer, Eintragetag).
+  - **PDF-Nachweis** je Fahrschüler:in (`go-pdf/fpdf`): beide Daten
+    nebeneinander, Abweichung markiert, eingebettete Unterschriften, Summen je
+    Art und Unterschriftsblock zum Gegenzeichnen.
+  - **Oberfläche** als eingebettete Einzelseite unter frei wählbarem Basispfad
+    (`FAHRSTUNDEN_BASIS_PFAD`, Standard `/fahrstunden`), mobiltauglich, mit
+    Unterschriftsfeld für den Finger und Live-Anzeige der freien Minuten.
+  - Endpoints unter `/v1/fahrstunden/*`; alle Daten hängen am angemeldeten
+    Konto. Doku: [FAHRSTUNDEN.md](./FAHRSTUNDEN.md).
+  - Unit-Tests grün; end-to-end gegen Postgres verifiziert (Limit greift,
+    automatische Tageswahl, Übersteuerung mit Grund, Unterschrift aus dem
+    Browser bis ins PDF, 5 gleichzeitige Eintragungen → genau eine durch).
+
 ## 2026-05-31
 
 - **~15:11** (≈ 17:11 MESZ) – **Phase 3 umgesetzt** (Posts + Feed + Fidolin):

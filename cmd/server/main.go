@@ -13,6 +13,7 @@ import (
 	"github.com/kommaufdenpunkt/insider/internal/auth"
 	"github.com/kommaufdenpunkt/insider/internal/config"
 	"github.com/kommaufdenpunkt/insider/internal/db"
+	"github.com/kommaufdenpunkt/insider/internal/fahrstunden"
 	"github.com/kommaufdenpunkt/insider/internal/fidolin"
 	"github.com/kommaufdenpunkt/insider/internal/groups"
 	"github.com/kommaufdenpunkt/insider/internal/httpx"
@@ -50,6 +51,13 @@ func main() {
 	postsSvc := posts.NewService(posts.NewPgRepository(pool), groupsSvc)
 	postsH := posts.NewHandler(postsSvc)
 
+	// Fahrstunden-Nachweis: das Nebenbuch zum FS Manager (gefahren am /
+	// eingetragen am, Notiz, Unterschrift, PDF).
+	fahrSvc := fahrstunden.NewService(fahrstunden.NewPgRepository(pool), cfg.FahrstundenTageslimit)
+	fahrH := fahrstunden.NewHandler(fahrSvc, authSvc, cfg.FahrstundenFahrschule)
+	fahrWeb := fahrstunden.NewWebHandler(cfg.FahrstundenAppName, "/v1/fahrstunden", "/v1/auth",
+		cfg.FahrstundenTageslimit, cfg.FahrstundenFahrschule)
+
 	// Fidolin-Worker (Moderation) — läuft im Hintergrund, stoppt mit ctx.
 	blocklist := cfg.ModerationBlocklist
 	if len(blocklist) == 0 {
@@ -69,7 +77,7 @@ func main() {
 	)
 	go fid.Run(ctx)
 
-	router, err := httpx.NewRouter(cfg, jwt, authH, groupsH, postsH)
+	router, err := httpx.NewRouter(cfg, jwt, authH, groupsH, postsH, fahrH, fahrWeb)
 	if err != nil {
 		log.Fatalf("Router: %v", err)
 	}

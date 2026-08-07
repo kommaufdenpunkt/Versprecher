@@ -37,6 +37,20 @@ type Config struct {
 
 	// Optionale Blockliste für die Heuristik (sonst Default). Komma-getrennt.
 	ModerationBlocklist []string
+
+	// Fahrstunden-Nachweis (Nebenbuch zum FS Manager).
+	//
+	// FahrstundenTageslimit ist die Arbeitszeit, die der FS Manager pro Tag
+	// zulässt (Standard 495 Minuten). Änderbar, falls sich die Vorgabe ändert.
+	FahrstundenTageslimit int
+	// FahrstundenBasisPfad ist die URL, unter der die Oberfläche erreichbar ist.
+	// So kann der Nachweis später unter einem eigenen Namen laufen, ohne dass
+	// im Code etwas geändert werden muss (z. B. FAHRSTUNDEN_BASIS_PFAD=/gino).
+	FahrstundenBasisPfad string
+	// FahrstundenFahrschule steht als Kopfzeile im PDF.
+	FahrstundenFahrschule string
+	// FahrstundenAppName ist der Name in Oberfläche und Titelzeile.
+	FahrstundenAppName string
 }
 
 // Load liest die Konfiguration. JWTSecret ist Pflicht (kein unsicherer Default).
@@ -55,12 +69,29 @@ func Load() (*Config, error) {
 		FidolinPollInterval:      getDuration("FIDOLIN_POLL_INTERVAL", 2*time.Second),
 		FidolinStaleAfter:        getDuration("FIDOLIN_STALE_AFTER", 5*time.Minute),
 		ModerationBlocklist:      getList("MODERATION_BLOCKLIST"),
+		FahrstundenTageslimit:    getInt("FAHRSTUNDEN_TAGESLIMIT_MINUTEN", 495),
+		FahrstundenBasisPfad:     getEnv("FAHRSTUNDEN_BASIS_PFAD", "/fahrstunden"),
+		FahrstundenFahrschule:    os.Getenv("FAHRSTUNDEN_FAHRSCHULE"),
+		FahrstundenAppName:       getEnv("FAHRSTUNDEN_APP_NAME", "Fahrstunden-Nachweis"),
 	}
 
 	if len(cfg.JWTSecret) < 16 {
 		return nil, fmt.Errorf("JWT_SECRET fehlt oder ist zu kurz (mind. 16 Zeichen)")
 	}
+	if cfg.FahrstundenTageslimit <= 0 || cfg.FahrstundenTageslimit > 1440 {
+		return nil, fmt.Errorf("FAHRSTUNDEN_TAGESLIMIT_MINUTEN muss zwischen 1 und 1440 liegen")
+	}
+	cfg.FahrstundenBasisPfad = normalisierePfad(cfg.FahrstundenBasisPfad)
 	return cfg, nil
+}
+
+// normalisierePfad macht aus „gino“, „/gino/“ usw. immer „/gino“.
+func normalisierePfad(p string) string {
+	p = "/" + strings.Trim(strings.TrimSpace(p), "/")
+	if p == "/" {
+		return "/fahrstunden" // die Wurzel bleibt frei für andere Routen
+	}
+	return p
 }
 
 func (c *Config) Addr() string { return ":" + c.Port }

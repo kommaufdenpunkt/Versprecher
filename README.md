@@ -7,6 +7,7 @@ beim Reden schiefgehen. Festhalten, gemeinsam lachen, später wiederentdecken.
 
 - **Einfach erklärt (für alle):** [ERKLAERUNG.md](./ERKLAERUNG.md)
 - **Spezifikation:** [SPEC.md](./SPEC.md)
+- **Fahrstunden-Nachweis:** [FAHRSTUNDEN.md](./FAHRSTUNDEN.md)
 - **Roadmap (8 Phasen):** [ROADMAP.md](./ROADMAP.md)
 - **Offene Punkte:** [TODO.md](./TODO.md)
 - **Änderungen:** [CHANGELOG.md](./CHANGELOG.md)
@@ -28,6 +29,7 @@ internal/
   posts/           Beiträge + Feed (Service, Handler)
   fidolin/         KI-Worker: Analyzer (Interface + Heuristik), Worker-Pool, Store
   moderation/      Moderations-Schwellen (von Fidolin gelesen)
+  fahrstunden/     Fahrstunden-Nachweis: Service, PDF, Oberfläche (web/)
   middleware/      Auth, Rate-Limit, Security-Header
   httpx/           Router (/v1)
 migrations/        SQL-Migrationen (.up.sql / .down.sql)
@@ -87,6 +89,25 @@ make test     # Unit-Tests (ohne DB, laufen überall)
 | PATCH | `/v1/posts/:id` | „gemeint"/Sorte bestätigen (nur Autor) |
 | GET | `/healthz` | Health-Check |
 
+Dazu der **Fahrstunden-Nachweis** unter `/v1/fahrstunden/*` und seine Oberfläche
+unter `/fahrstunden` — siehe [FAHRSTUNDEN.md](./FAHRSTUNDEN.md).
+
+## Fahrstunden-Nachweis (Nebenbuch zum FS Manager)
+
+Der FS Manager lässt pro Tag nur **495 Minuten** zu. Wird an einem Tag mehr
+gefahren, muss die Stunde unter einem anderen Tag verbucht werden. Damit die
+Dokumentation lückenlos bleibt, hält dieses Nebenbuch beide Daten getrennt fest:
+
+- **gefahren am** — der Tag der tatsächlichen Fahrstunde
+- **eingetragen am** — der Tag, unter dem sie im FS Manager verbucht ist
+
+Dazu Art, Notiz und die **Unterschrift** der Fahrschüler:innen (mit dem Finger
+auf dem Handy) — ausdruckbar als **PDF** je Fahrschüler:in. Das Tageslimit wird
+auf `eingetragen_am` geprüft; passt eine Stunde nicht, schlägt der Dienst
+konkrete Ausweichtage vor, statt still zu überbuchen.
+
+Details, Endpoints und Konfiguration: [FAHRSTUNDEN.md](./FAHRSTUNDEN.md).
+
 ## Fidolin (KI-Moderation)
 
 Fidolin läuft als Hintergrund-Worker (Goroutine-Pool mit Polling) und prüft neue
@@ -107,6 +128,7 @@ Beiträge. Sicherheit zuerst:
 - ✅ **Phase 2:** Gruppen, Mitglieder, Einladungen.
 - ✅ **Phase 3:** Posts + Feed + Fidolin-Worker (Moderation + „gemeint"-Vorschlag).
 - ⏳ Phasen 4–8: siehe [ROADMAP.md](./ROADMAP.md).
+- ✅ **Fahrstunden-Nachweis** (eigenständig, unabhängig von den Phasen 1–8).
 
 ### Hinweise zu Phase 1
 
