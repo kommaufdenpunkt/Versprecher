@@ -36,25 +36,48 @@ Arbeitsunterlage zum angemeldeten Gewerbe **EDULIGHT AGENCY DE**
 **Die Abgabefrist für die Steuererklärung 2025 war der 31.07.2026 — die ist seit
 dem 09.08.2026 vorbei.**
 
-Du bist zur Abgabe verpflichtet (Arbeitslohn + Gewerbe-Gewinn über 410 € →
-Pflichtveranlagung, § 46 Abs. 2 Nr. 1 EStG). Kein Grund zur Panik, aber Grund
-zum Handeln:
+Ob du überhaupt abgeben **musst**, hängt am Ergebnis:
 
-1. **Ein Verspätungszuschlag ist bis zum 28.02.2027 eine *Kann*-Entscheidung**
-   des Finanzamts (§ 152 Abs. 1 AO). Erst danach — also 14 Monate nach
-   Jahresende — wird er zwingend (§ 152 Abs. 2 AO) und kostet dann
-   0,25 % der festgesetzten Steuer, **mindestens 25 € je angefangenem Monat**.
-2. **Der saubere Ausweg: jetzt einen Steuerberater beauftragen.** Wird die
+- **Gewinn über 410 €** neben dem Arbeitslohn → Pflichtveranlagung
+  (§ 46 Abs. 2 Nr. 1 EStG).
+- **Verlust oder Gewinn unter 410 €** → nach dieser Vorschrift keine Pflicht.
+  **Aber:** Sobald das Finanzamt dich zur Abgabe auffordert — und mit
+  angemeldetem Gewerbe tut es das in der Regel — bist du unabhängig davon
+  verpflichtet (§ 149 Abs. 1 S. 2 AO). Prüfe dein ELSTER-Postfach und deine
+  Post auf so ein Schreiben.
+- **In beiden Fällen gilt:** Abgeben lohnt sich, weil ein Verlust deine
+  Lohnsteuer mindert (siehe ABSETZBAR.md, Abschnitt 7).
+
+Kein Grund zur Panik, aber Grund zum Handeln:
+
+1. **Wahrscheinlich kostet es dich gar nichts.** Ein Verspätungszuschlag ist
+   ausgeschlossen, wenn die festgesetzte Steuer 0 € beträgt, es eine Erstattung
+   gibt oder die Steuer die Summe aus Vorauszahlungen und bereits gezahlter
+   **Lohnsteuer nicht übersteigt** (§ 152 Abs. 3 Nr. 2 und 3 AO). Genau das ist
+   der Normalfall im ersten Gründungsjahr mit Setup-Investitionen und
+   Verlust — dann bekommst du Geld zurück statt einen Zuschlag.
+2. **Falls doch eine Nachzahlung herauskommt:** Bis zum 28.02.2027 ist der
+   Zuschlag eine *Kann*-Entscheidung des Finanzamts (§ 152 Abs. 1 AO), danach
+   wird er zwingend (§ 152 Abs. 2 AO). Er beträgt 0,25 % der festgesetzten
+   Steuer **abzüglich Vorauszahlungen und angerechneter Lohnsteuer**,
+   mindestens 25 € je angefangenem Monat, höchstens 25.000 €.
+3. **Der saubere Ausweg: jetzt einen Steuerberater beauftragen.** Wird die
    Erklärung von einem Berater erstellt, gilt die verlängerte Frist bis zum
-   **01.03.2027** (§ 149 Abs. 3 AO; 28.02.2027 ist ein Sonntag). Das ist der
-   übliche Weg, um eine gerissene Frist zu heilen — bitte beim Erstgespräch
-   ausdrücklich ansprechen.
-3. **Alternative, wenn du es selbst machst:** formlos per ELSTER
+   **01.03.2027** (§ 149 Abs. 3 AO; 28.02.2027 ist ein Sonntag). Diese
+   Verlängerung wirkt **kraft Gesetzes und auch dann, wenn du den Auftrag erst
+   jetzt erteilst** — kein Antrag nötig. Wichtig: echter Auftrag zur
+   *Erstellung* der Erklärung, nachweisbar (Mandatsvertrag, Vollmacht ans
+   Finanzamt). Ein bloßes Beratungsgespräch reicht nicht.
+4. **Alternative, wenn du es selbst machst:** formlos per ELSTER
    Fristverlängerung beantragen (kurze Begründung: Erstjahr der Gründung,
    Unterlagen in Aufbereitung) und dann zügig abgeben.
-4. **Auf keinen Fall:** liegenlassen und hoffen. Bigo meldet Auszahlungen unter
-   dem Plattformen-Steuertransparenzgesetz (DAC7) ans Bundeszentralamt für
-   Steuern — dein Finanzamt kennt die Zahlen also unabhängig von dir.
+5. **Auf keinen Fall:** liegenlassen und hoffen. Plattformen melden Einnahmen
+   ihrer Nutzer unter dem Plattformen-Steuertransparenzgesetz (DAC7) an die
+   Finanzverwaltung; deshalb verlangen sie auch das „Steuerinterview". Ob Bigo
+   als Betreiber aus Singapur konkret meldet, ist von außen nicht sicher zu
+   sagen — darauf zu setzen, dass niemand etwas erfährt, ist aber eine
+   schlechte Wette. Das Finanzamt hat außerdem Kontrollmitteilungen und
+   Sammelauskunftsersuchen.
 
 ---
 
@@ -85,8 +108,8 @@ zum Handeln:
 |---|---|
 | ~~31.07.2026~~ | Einkommensteuererklärung **2025** ohne Berater — **abgelaufen** |
 | 01.03.2027 | Einkommensteuererklärung **2025** mit Steuerberater |
-| 28.02.2027 | Ab hier ist der Verspätungszuschlag für 2025 zwingend |
-| 31.07.2027 | Einkommensteuererklärung **2026** ohne Berater |
+| 28.02.2027 | Ab hier wäre ein Verspätungszuschlag für 2025 zwingend — aber nur, wenn überhaupt eine Nachzahlung herauskommt |
+| 02.08.2027 | Einkommensteuererklärung **2026** ohne Berater (der 31.07.2027 ist ein Samstag, deshalb Montag — § 108 Abs. 3 AO) |
 | monatlich, 10. | Nur falls Reverse-Charge-Fälle: USt-Voranmeldung |
 | laufend | Umsatz gegen die **25.000 €**-Grenze prüfen (Kleinunternehmer) |
 
@@ -99,6 +122,10 @@ zum Handeln:
 > nicht anfasst.**
 
 Bei Nebenerwerb ist der Gewerbe-Gewinn der *oberste* Teil deines Einkommens —
-er wird mit deinem persönlichen Grenzsteuersatz besteuert, nicht ab null. Wer
-im Hauptjob schon im 30-%-Bereich liegt, zahlt auf den ersten Euro
-Streaming-Gewinn auch ~30 % plus Soli-Anteil. Deshalb die Rücklage.
+er wird mit deinem persönlichen Grenzsteuersatz besteuert, nicht ab null. Der
+Grundfreibetrag ist durch den Hauptjob schon verbraucht. Wer dort im
+30-%-Bereich liegt, zahlt auf den ersten Euro Streaming-Gewinn ebenfalls
+~30 % (plus Kirchensteuer, falls du kirchensteuerpflichtig bist; der
+Solidaritätszuschlag greift erst bei deutlich höheren Einkommen). Deshalb die
+Rücklage — und deshalb kommt bei laufendem Gewinn irgendwann ein Bescheid über
+**Einkommensteuer-Vorauszahlungen**, mit dem viele nicht rechnen.

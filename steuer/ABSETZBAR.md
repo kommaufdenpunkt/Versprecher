@@ -30,6 +30,15 @@ ist für dich echte Kosten, also auch echte Betriebsausgabe.
 - 250,01 – 800 € netto → sofort als GWG (ins Anlagenverzeichnis)
 - über 800 € netto → abschreiben — **außer Computer/Software**, die gehen immer sofort
 
+⚠️ **Netto trotz Kleinunternehmer — das wird oft falsch gemacht.** Absetzen tust
+du den Bruttobetrag, aber für die *800-€-Grenze* zählt der Nettowert „ohne
+Vorsteuer" (§ 6 Abs. 2 EStG) — auch wenn du gar keinen Vorsteuerabzug hast.
+Eine Kamera für 900 € brutto sind 756,30 € netto und damit noch GWG: Du ziehst
+die vollen **900 €** sofort ab. Die Grenze ist real bei 952 € brutto.
+
+_(Statt des Sofortabzugs gäbe es für 250–1.000 € auch den Sammelposten über
+5 Jahre. Für dich fast immer schlechter — Sofortabzug nehmen.)_
+
 **Zwei Tricks, die viele nicht kennen:**
 
 1. **Alt-Hardware einlegen.** Der PC, die Kamera, das Mikro, die du *vor* der
@@ -50,11 +59,42 @@ Hier verlieren die meisten Streamer Geld, weil sie das Falsche beantragen.
 |---|---|---|
 | **Häusliches Arbeitszimmer** (volle anteilige Miete, Nebenkosten, Strom) | Der Raum ist ein *abgeschlossenes* Zimmer, **so gut wie ausschließlich** betrieblich genutzt, **und** dort liegt der Mittelpunkt deiner *gesamten* Tätigkeit. | Bei dir vermutlich **nein** — dein Mittelpunkt ist der Hauptjob. |
 | **Jahrespauschale 1.260 €** | Wie oben (Mittelpunkt), aber ohne Einzelnachweis. | Ebenso schwierig. |
-| **Tagespauschale 6 €/Tag, max. 1.260 €/Jahr** | Tage, an denen du **überwiegend zu Hause** arbeitest und keine erste Tätigkeitsstätte aufsuchst. | **Realistisch für dich** — z. B. Wochenend- und Abend-Streamtage. Der Höchstbetrag ist auf alle Tätigkeiten zusammen gedeckelt: derselbe Tag zählt nur einmal. |
+| **Tagespauschale 6 €/Tag, max. 1.260 €/Jahr** | Grundfall: Tage, an denen du **überwiegend zu Hause** arbeitest und keine erste Tätigkeitsstätte aufsuchst. | **Der realistische Weg für dich** — und zwar großzügiger als gedacht, siehe direkt unten. |
 | **„Betriebsstätte" statt Arbeitszimmer** | Ein Raum mit echtem **Studio-Charakter** (fest installierte Technik, Licht, Schallschutz, kein Wohnmöbel drin), der wie ein Tonstudio/eine Werkstatt zu werten ist. | Dann greift die Arbeitszimmer-Beschränkung **nicht** und die Raumkosten sind voll abziehbar. Rechtlich strittig, aber bei ernsthaften Streaming-Setups ein echter Hebel. **Unbedingt mit dem Steuerberater besprechen** — und den Raum vorher fotografieren. |
 
-Führe eine simple Liste: Datum + „überwiegend zu Hause gearbeitet". Ohne
-Nachweis keine Tagespauschale.
+### Der Kniff bei der Tagespauschale im Nebenerwerb
+
+Das Gesetz hat einen zweiten Satz, den fast alle übersehen
+(§ 4 Abs. 5 S. 1 Nr. 6c S. 2 EStG):
+
+> Steht für eine Tätigkeit **dauerhaft kein anderer Arbeitsplatz** zur
+> Verfügung, gibt es die Tagespauschale **auch dann**, wenn du am selben Tag
+> auswärts oder an deiner ersten Tätigkeitsstätte gearbeitet hast.
+
+Für dein Streaming-Gewerbe existiert außerhalb deiner Wohnung schlicht kein
+Arbeitsplatz. Damit zählen auch **normale Arbeitstage**, an denen du abends
+nach dem Hauptjob noch fürs Gewerbe tätig warst — nicht nur Wochenenden.
+
+Zwei Einschränkungen:
+
+- Die 6 € gibt es **einmal pro Kalendertag** für alle Tätigkeiten zusammen,
+  gedeckelt auf 1.260 € im Jahr. Sie verdoppeln sich nicht, weil du zwei
+  Tätigkeiten hast.
+- Die Finanzverwaltung beanstandet es aber nicht, wenn du auf eine Aufteilung
+  verzichtest und die Pauschale **komplett einer Tätigkeit zuordnest**
+  (BMF-Schreiben vom 15.08.2023). Ordne sie dem Gewerbe zu — dort senkt sie
+  direkt den Gewinn.
+
+Bei 210 aktiven Tagen im Jahr sind das die vollen **1.260 €** statt der ~400 €,
+die man mit reinen Wochenendtagen zusammenbekommt.
+
+Fairerweise: Manche Finanzämter prüfen genau, ob an dem Tag wirklich fürs
+Gewerbe gearbeitet wurde. Deshalb ist die Tagesliste kein Papierkram, sondern
+dein Beleg.
+
+**Nachweis:** Führe eine simple Liste — Datum + „für das Gewerbe zu Hause
+gearbeitet". Ohne Aufzeichnung keine Tagespauschale. Das ist Kandidat Nummer 12
+in den [Programm-Ideen](./PROGRAMM-IDEEN.md): ein Klick pro Tag.
 
 ---
 
@@ -63,7 +103,7 @@ Nachweis keine Tagespauschale.
 | Ausgabe | Wie viel |
 |---|---|
 | Internet | Anteilig nach betrieblicher Nutzung. Bei Streaming ist ein hoher Anteil begründbar — aber begründen, nicht raten. |
-| Handy + Vertrag | Anteilig, oft 50 %. Alternative Vereinfachung: 20 % der Kosten, max. 20 €/Monat, ohne Einzelnachweis. |
+| Handy + Vertrag | Anteilig, oft 50 %. Vereinfachung ohne Einzelnachweis: 20 % der Kosten, max. 20 €/Monat — die Regel stammt aus dem Lohnsteuerrecht, wird von Finanzämtern aber auch bei Betriebsausgaben meist akzeptiert. Wer mehr will, führt drei Monate lang Nachweise und rechnet den Anteil hoch. |
 | Zweit-SIM / Business-Nummer | Zu 100 %, wenn ausschließlich betrieblich. |
 | Strom | Nur über das Arbeitszimmer/Studio (siehe oben), nicht separat. |
 | Streaming-Software & Plugins (Streamlabs, OBS-Tools) | 100 % |
@@ -83,11 +123,12 @@ Nachweis keine Tagespauschale.
 
 | Ausgabe | Wie viel |
 |---|---|
-| Betriebliche Fahrten mit dem Privatwagen | **0,30 €/km** (ab dem 21. km bei Pendelfahrten 0,38 € — für Betriebsfahrten pauschal 0,30 €). Fahrtenliste führen: Datum, Ziel, Zweck, km. |
+| Betriebliche Fahrten mit dem Privatwagen | **0,30 €/km** — gefahrene Kilometer, also Hin- **und** Rückweg. Fahrtenliste führen: Datum, Ziel, Zweck, km. |
+| Weg zu einer festen Betriebsstätte (falls du je ein externes Studio mietest) | Entfernungspauschale: seit 2026 **0,38 €/km ab dem ersten Kilometer**, nur einfache Strecke. |
 | Fahrten zu Creator-Treffen, Events, Kooperationspartnern, Elektronikmarkt, Steuerberater, Bank | Absetzbar. |
 | Bahn, Flug, Mietwagen, Taxi | 100 % |
 | Übernachtung auf Messen (Gamescom, TwitchCon, Bigo-Events) | 100 % |
-| Verpflegungsmehraufwand | **14 €** ab 8 h Abwesenheit, **28 €** bei ganztägiger Abwesenheit, je 14 € An-/Abreisetag. Pauschal — ohne Belege. |
+| Verpflegungsmehraufwand | **14 €** ab 8 h Abwesenheit, **28 €** bei ganztägiger Abwesenheit, je 14 € An-/Abreisetag (unverändert auch 2026). Pauschal — ohne Belege. Bei derselben auswärtigen Tätigkeitsstätte nur die ersten **3 Monate**. |
 | Eintritt/Tickets für Branchenevents | 100 % |
 
 ---
@@ -118,7 +159,7 @@ Nachweis keine Tagespauschale.
 | Berufshaftpflicht, Elektronikversicherung, Rechtsschutz (betrieblich) | 100 % |
 | Kontoführung Geschäftskonto | 100 % |
 | PayPal-, Stripe-, Wise-, Transaktionsgebühren | 100 % — bei Bigo-Auszahlungen oft übersehen! |
-| Währungsverluste bei USD-Auszahlungen | Als Aufwand erfassbar |
+| Wechselkurs bei USD-Auszahlungen | Kein eigener Posten: In der EÜR zählt der **Euro-Betrag, der tatsächlich ankommt**. Nur wenn du ein Fremdwährungskonto führst und später umtauschst, entstehen echte Kursgewinne/-verluste. |
 | Fachliteratur, Fachzeitschriften | 100 % |
 | Online-Kurse, Coachings, Weiterbildung | 100 % |
 | Rechtsberatung (Verträge mit Streamern, AGB, Impressum) | 100 % |
@@ -171,13 +212,27 @@ Einmal schreiben, ins Ordner legen, ruhig schlafen.
 |---|---|
 | Normale Kleidung, auch „Stream-Outfits" | Bürgerliche Kleidung ist privat — selbst wenn du sie nur im Stream trägst. Ausnahme: Kostüme, Kleidung mit fest angebrachtem Logo. |
 | Friseur, Kosmetik, Fitnessstudio | Privat, auch bei Kamerapräsenz. |
-| Einkommensteuer, Soli, Kirchensteuer | Ausdrücklich nicht abziehbar. |
+| Einkommensteuer, Soli, Kirchensteuer | Keine Betriebsausgaben (§ 12 Nr. 3 EStG). Kirchensteuer wirkt aber als **Sonderausgabe**. |
+| Gewerbesteuer | Seit 2008 nicht mehr abziehbar (§ 4 Abs. 5b EStG) — dafür die Anrechnung nach § 35 EStG. |
 | Privatentnahmen | Kein Aufwand, nur Geldbewegung. |
 | Bußgelder, Strafen | § 4 Abs. 5 Nr. 8 EStG. |
 | 30 % der Bewirtungskosten | Gesetzlich gekürzt. |
 | Geschenke über 50 € netto | Komplett, nicht nur der Überhang. |
 | Ausgaben ohne Beleg | Faktisch nicht durchsetzbar. |
 | Anteile privater Nutzung | Handy, Internet, Spiele, Auto — sauber aufteilen. |
+
+### Keine Betriebsausgaben — sparen aber trotzdem Steuern
+
+Diese Posten gehören **nicht** in die EÜR, sondern an anderer Stelle in die
+Einkommensteuererklärung. Vergiss sie nicht, nur weil sie hier nicht reinpassen:
+
+| Posten | Wo |
+|---|---|
+| Kranken- und Pflegeversicherung | Anlage Vorsorge (Sonderausgaben) |
+| Altersvorsorge (Rürup/Basisrente, freiwillige DRV-Beiträge) | Anlage Vorsorge — für Selbständige der größte Hebel überhaupt |
+| Kirchensteuer, Spenden | Sonderausgaben |
+| Handwerkerleistungen, Haushaltshilfe | Haushaltsnahe Dienstleistungen, 20 % direkt von der Steuer |
+| Krankheitskosten, Zahnersatz | Außergewöhnliche Belastungen (mit zumutbarer Eigenbelastung) |
 
 ---
 

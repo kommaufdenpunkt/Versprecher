@@ -80,10 +80,12 @@ einmal, spart später drei Behördengänge.
 - **Freibetrag 24.500 €** Gewerbeertrag für Einzelunternehmen. Darunter fällt
   keine Gewerbesteuer an und keine Gewerbesteuererklärung (außer das Finanzamt
   fordert dich auf).
-- Darüber: Messbetrag 3,5 % × Hebesatz der Stadt Bernau bei Berlin.
+- Darüber: Messbetrag 3,5 % × Hebesatz. Bernau bei Berlin liegt bei **350 %**
+  (Stand 2024 — vor einer Rechnung auf der Seite der Stadt gegenprüfen).
 - Und selbst dann: **§ 35 EStG rechnet das 3,8-fache des Messbetrags auf deine
-  Einkommensteuer an.** Bis etwa 400 % Hebesatz ist die Gewerbesteuer damit
-  praktisch neutral. Sie ist selten der Grund, warum etwas teuer wird.
+  Einkommensteuer an.** Das entspricht einem Hebesatz von 380 % — bis dahin ist
+  die Gewerbesteuer vollständig neutralisiert. **Bei 350 % in Bernau zahlst du
+  sie also effektiv nicht.** Sie ist hier nie der Grund, warum etwas teuer wird.
 
 ### 3. Umsatzsteuer — Kleinunternehmer, aber Vorsicht
 
@@ -139,9 +141,12 @@ EU-Ausland relevant.
 
 ### Falle 3: Bigo sitzt in Singapur
 
-Deine Leistung an Bigo (Streaming, Agenturleistung) ist eine sonstige Leistung
-an einen Unternehmer im **Drittland**. Leistungsort ist damit nicht Deutschland
-(§ 3a Abs. 2 UStG) — die Auszahlung ist in Deutschland **nicht steuerbar**.
+Bei Leistungen über ein Portal gilt der Plattformbetreiber umsatzsteuerlich als
+dein Leistungsempfänger (Dienstleistungskommission, § 3 Abs. 11a UStG) — du
+lieferst also an Bigo, nicht an die einzelnen Zuschauer. Deine Leistung an Bigo
+ist damit eine sonstige Leistung an einen Unternehmer im **Drittland**:
+Leistungsort ist nicht Deutschland (§ 3a Abs. 2 UStG), die Auszahlung ist hier
+**nicht steuerbar**.
 Einkommensteuerlich ist sie natürlich trotzdem voll Betriebseinnahme.
 Auszahlungen in USD zum Kurs des Zuflusstags in Euro umrechnen (Umsatzsteuer-
 Umrechnungskurse des BMF, monatlich veröffentlicht — auch für die EÜR nutzbar).
@@ -167,9 +172,9 @@ Kleinunternehmer weiterhin nicht im neuen Format.
 
 | Stelle | Betrifft dich | Was tun |
 |---|---|---|
-| **IHK Ostbrandenburg** | Automatische Pflichtmitgliedschaft durch die Gewerbeanmeldung. | Kleingewerbe (kein HR): Bei Gewerbeertrag **≤ 5.200 €** beitragsfrei. Zusätzlich sind Existenzgründer in den ersten 2 Jahren vom Grundbeitrag befreit, wenn der Gewinn ≤ 25.000 € bleibt (§ 3 IHKG). **Beantragen, kommt nicht automatisch.** |
-| **Künstlersozialkasse (KSK)** | Sehr wahrscheinlich, wenn du als *Agentur* Streamer/Creator/Editoren bezahlst. | Abgabesatz **2026: 4,9 %** auf gezahlte Honorare. **Bagatellgrenze ab 2026: 1.000 €/Jahr** — darunter nichts. Darüber: melden. Die KSK prüft rückwirkend bis 5 Jahre, das wird sonst teuer. |
-| **Rundfunkbeitrag** | Betriebsstätte in der eigenen Wohnung, 0 Mitarbeiter. | Dann **beitragsfrei**, wenn für die Wohnung schon privat gezahlt wird (§ 5 Abs. 5 RBStV). Anschreiben kommt trotzdem — mit Hinweis auf die Wohnung antworten, nicht ignorieren. |
+| **IHK Ostbrandenburg** | Automatische Pflichtmitgliedschaft durch die Gewerbeanmeldung. | Kleingewerbe (kein HR): Bei Gewerbeertrag **≤ 5.200 €** beitragsfrei. Zusätzlich sind Existenzgründer im Gründungsjahr und im Folgejahr von Grundbeitrag und Umlage befreit, wenn der Gewerbeertrag ≤ 25.000 € bleibt (§ 3 Abs. 3 IHKG). Die IHK erfährt deinen Gewerbeertrag erst über das Finanzamt — in den ersten Jahren musst du ihn **selbst angeben**. Fragebogen nicht ignorieren, sonst wird geschätzt. |
+| **Künstlersozialkasse (KSK)** | Sehr wahrscheinlich, wenn du als *Agentur* Streamer/Creator/Editoren bezahlst. | Abgabesatz **2026: 4,9 %** auf gezahlte Honorare. **Bagatellgrenze ab 2026: 1.000 €/Jahr** — darunter nichts. Darüber: melden. Die KSK prüft **rückwirkend** (Beiträge verjähren regulär erst nach 4 Jahren, § 25 SGB IV) — nicht gemeldete Jahre werden also nachgefordert. |
+| **Rundfunkbeitrag** | Betriebsstätte in der eigenen Wohnung, 0 Mitarbeiter. | Dann **beitragsfrei**, wenn für die Wohnung schon privat gezahlt wird (§ 5 Abs. 5 Nr. 3 RBStV). Anschreiben kommt trotzdem — mit Hinweis auf die Wohnung antworten, nicht ignorieren. Achtung Sonderfall: Für ein *betrieblich* genutztes, auf dich zugelassenes Kfz kann trotzdem ein Drittelbeitrag anfallen, weil die Kfz-Freistellung an eine beitragspflichtige Betriebsstätte gekoppelt ist. |
 | **Krankenkasse** | Nebenerwerb. | Solange die Selbständigkeit *nicht hauptberuflich* ist (Richtwerte: unter ~20 h/Woche **und** weniger als die Hälfte deines Gesamteinkommens), zahlst du auf den Gewinn keine zusätzlichen Beiträge. Wenn das kippt, wird es richtig teuer — **vorher** melden. |
 | **Deutsche Rentenversicherung** | Falls Bigo dein einziger Auftraggeber ist und du keine Angestellten hast. | Dann droht die Einstufung als **arbeitnehmerähnlicher Selbständiger** (§ 2 S. 1 Nr. 9 SGB VI) mit Rentenversicherungspflicht. Gegenmittel: mehrere Auftraggeber. Im Zweifel Statusfeststellung (§ 7a SGB IV) beantragen. |
 | **Dein Arbeitgeber** | Nebentätigkeit. | Arbeitsvertrag prüfen: Anzeige- oder Genehmigungspflicht ist Standard. Ein Verbot ist nur wirksam, wenn berechtigte Interessen betroffen sind — Ärger vermeidet man trotzdem besser vorher. |
@@ -189,11 +194,18 @@ Du bist **nicht buchführungspflichtig**. Aber Aufzeichnungspflichten hast du:
   geordnet (GoBD). „Zeitgerecht" heißt: nicht einmal im Jahr im Schuhkarton.
 - **Kein Beleg, keine Ausgabe.** Eigenbelege gehen nur im Ausnahmefall
   (Trinkgeld, Parkuhr) und müssen Datum, Betrag, Zweck, Empfänger nennen.
-- **Aufbewahrung: 8 Jahre** für Buchungsbelege und Rechnungen (seit dem Vierten
-  Bürokratieentlastungsgesetz von 10 auf 8 verkürzt), 6 Jahre für sonstige
-  Geschäftsunterlagen. Digitale Belege digital aufbewahren — ein Ausdruck
-  ersetzt das Original nicht. Die Bigo-Abrechnungen also **exportieren und
-  sichern**, nicht nur im Portal liegen lassen.
+- **Aufbewahrung** (§ 147 AO), drei verschiedene Fristen:
+  - **10 Jahre**: deine Aufzeichnungen selbst — die EÜR, das Anlagenverzeichnis,
+    die Kassen-/Kontenaufstellungen.
+  - **8 Jahre**: Buchungsbelege und Rechnungen (durch das Vierte
+    Bürokratieentlastungsgesetz zum 01.01.2025 von 10 auf 8 verkürzt).
+  - **6 Jahre**: Geschäftsbriefe, E-Mails mit geschäftlichem Inhalt, sonstige
+    Unterlagen.
+
+  Die Frist beginnt jeweils am **Ende des Jahres**, in dem der Beleg entstanden
+  ist. Digitale Belege digital aufbewahren — ein Ausdruck ersetzt das Original
+  nicht. Die Bigo-Abrechnungen also **exportieren und sichern**, nicht nur im
+  Portal liegen lassen.
 - **Anlagenverzeichnis** für alles, was du über mehrere Jahre abschreibst.
 - **Rechnungen an Kunden**: fortlaufende Nummer, dein Name/Anschrift,
   Leistungsbeschreibung, Datum, Betrag, § 19-Hinweis. Bei Zahlungen an deine
